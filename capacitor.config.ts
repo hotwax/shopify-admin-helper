@@ -1,9 +1,9 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'shopify-preorder',
-  webDir: 'dist',
+  appId: 'com.example.app',
+  appName: 'shopify-admin-helper-app',
+  webDir: 'public',
   bundledWebRuntime: false
 };
 

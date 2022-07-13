@@ -34,5 +34,3 @@ npm-debug.log*
 /platforms
 /plugins
 /www
-
-scripts/script-tag.min.js

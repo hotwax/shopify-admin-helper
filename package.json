@@ -1,11 +1,10 @@
 {
-  "name": "shopify-preorder-app",
-  "version": "1.0.1",
-  "description": "HotWax Commerce shopify preorder app",
+  "name": "shopify-admin-helper-app",
+  "version": "0.0.1",
+  "description": "HotWax Commerce shopify admin helper app",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "buildScript": "npx gulp",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
@@ -13,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hotwax/shopify-preorder-app.git"
+    "url": "git+https://github.com/hotwax/shopify-admin-helper"
   },
   "author": "HotWax Commerce",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/hotwax/shopify-preorder-app/issues"
+    "url": "https://github.com/hotwax/shopify-admin-helper/issues"
   },
-  "homepage": "https://github.com/hotwax/shopify-preorder-app#readme",
+  "homepage": "https://github.com/hotwax/shopify-admin-helper#readme",
   "dependencies": {
     "@capacitor/core": "3.2.3",
     "@capacitor/network": "^1.0.3",
@@ -58,8 +57,6 @@
     "@vue/test-utils": "^2.0.0-0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0-0",
-    "gulp": "^4.0.2",
-    "gulp-minify": "^3.1.0",
     "typescript": "^4.3.5",
     "vue-jest": "^5.0.0-0"
   }
