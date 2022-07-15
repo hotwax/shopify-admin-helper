@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hotwax/shopify-admin-helper"
+    "url": "git+https://github.com/hotwax/shopify-admin-helper-app.git"
   },
   "author": "HotWax Commerce",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/hotwax/shopify-admin-helper/issues"
+    "url": "https://github.com/hotwax/shopify-admin-helper-app/issues"
   },
-  "homepage": "https://github.com/hotwax/shopify-admin-helper#readme",
+  "homepage": "https://github.com/hotwax/shopify-admin-helper-app#readme",
   "dependencies": {
     "@capacitor/core": "3.2.3",
     "@capacitor/network": "^1.0.3",
