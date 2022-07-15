@@ -1,7 +1,7 @@
 {
-  "name": "shopify-preorder-app",
-  "version": "1.0.1",
-  "description": "HotWax Commerce shopify preorder app",
+  "name": "shopify-admin-helper-app",
+  "version": "0.0.1",
+  "description": "HotWax Commerce shopify admin helper app",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
