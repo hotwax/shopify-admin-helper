@@ -14,7 +14,8 @@
             <ion-item lines="none">
               <ion-label>
                 <h2>{{ order.customer?.first_name }} {{ order.customer?.last_name }}</h2>
-                <p>CSR name</p>
+                <!-- TODO: Uncomment this when we'll get CRS information -->
+                <!-- <p>CSR name</p> -->
               </ion-label>
               <ion-note slot="end">{{ timeFromNow(order?.created_at) }}</ion-note>
             </ion-item>
