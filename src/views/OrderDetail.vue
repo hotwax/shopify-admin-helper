@@ -138,7 +138,7 @@ export default defineComponent({
       if(event.detail.checked){
         const address = `${this.shopifyStore.storeName}, ${this.shopifyStore.address1}, ${this.shopifyStore.city}`
         item.properties.push({ name: '_pickupstore', value: this.shopifyStore.storeCode }, { name: 'Pickup Store', value: address })  
-      } else if(event.detail.value === true){
+      } else if(event.detail.value === "Pre Order" || event.detail.value === "Back Order"){
         const product = this.checkPreorderItemAvailability.find((product: any) => product.sku == item.sku)
         if(product){
           item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: product.estimatedDeliveryDate })
