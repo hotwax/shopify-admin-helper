@@ -2,9 +2,8 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShopState from './ShopState'
 import * as types from './mutation-types'
-import { getShopifyConfigId, getStore } from "@/services"
-import { hasError, showToast } from '@/utils'
-import { translate } from '@/i18n'
+import { getShopifyConfigId, getStore, checkPreorderItemAvailability } from "@/services"
+import { hasError } from '@/utils'
 
 const actions: ActionTree<ShopState, RootState> = {
   setShopToken({ commit }, payload) {
@@ -17,7 +16,7 @@ const actions: ActionTree<ShopState, RootState> = {
     let resp;
     const payload = {
       'inputFields': {
-        'apiUrl': 'https://'+shop+'/'
+        'apiUrl': `https://${shop}/`
       },
       "entityName": "ShopifyConfig",
       "noConditionFind": "Y",
@@ -25,7 +24,7 @@ const actions: ActionTree<ShopState, RootState> = {
     }
     try {
       resp = await getShopifyConfigId(payload);
-      if(resp.status == 200 && !hasError(resp) && resp.data.docs){
+      if(resp.status == 200 && !hasError(resp) && resp.data?.docs){
         commit(types.SHOP_CONFIG_ID_UPDATED, resp.data.docs[0].shopifyConfigId)
       } else {
         console.error(resp);
@@ -50,6 +49,28 @@ const actions: ActionTree<ShopState, RootState> = {
     } catch(err) {
       console.error(err);
     }
-  }       
+  },
+  async checkPreorderItemAvailability ({commit}, productIds) {
+    let resp;
+    const payload = {
+      "viewIndex": 0,
+      "viewSize": productIds.length,
+      "filters": {
+        "sku": productIds,
+        "sku_op": "in"
+      }
+    }
+    try {
+      resp = await checkPreorderItemAvailability(payload);
+      if (resp.status == 200 && !hasError(resp) && resp.data?.docs) {
+        return resp.data.docs
+      } else {
+        return [];
+      }
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }      
 }
 export default actions;

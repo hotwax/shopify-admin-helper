@@ -31,11 +31,6 @@
               </ion-label>
             </ion-item>
             <ion-item>
-              <ion-checkbox slot="start" />
-              <ion-label>{{ $t("Pickup") }}</ion-label>
-              <ion-note slot="end">15 {{ $t("in stock") }}</ion-note>
-            </ion-item>
-            <ion-item>
               <ion-checkbox slot="start" @ionChange="addProperty(item, $event)" />
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.productSku) }} {{ $t("in stock") }}</ion-note>
@@ -141,14 +136,14 @@ export default defineComponent({
       return !product;
     },
     addProperty (item: any, event: any) {
-      if(event.detail.value){
+      if(event.detail.checked){
+        const address = `${this.shopifyStore.storeName}, ${this.shopifyStore.address1}, ${this.shopifyStore.city}`
+        item.properties.push({ name: '_pickupstore', value: this.shopifyStore.storeCode }, { name: 'Pickup Store', value: address })  
+      } else if(event.detail.value){
         const product = this.checkPreorderItemAvailability.find((product: any) => product.sku == item.sku)
         if(product){
           item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: product.estimatedDeliveryDate })
         }
-      } else if(event.detail.checked){
-        const address = `${this.shopifyStore.storeName}, ${this.shopifyStore.address1}, ${this.shopifyStore.city}`
-        item.properties.push({ name: '_pickupstore', value: this.shopifyStore.storeCode }, { name: 'Pickup Store', value: address })
       }
     },
     updateDraftOrder (lineItems: any) {
