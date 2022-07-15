@@ -3,7 +3,7 @@
     <ion-content>
       <ion-list class="ion-text-center">
         <img src="../assets/icon/icon.png" />
-        <h1>{{ $t("Welcome to HC PreOrder App") }}</h1>
+        <h1>{{ $t("Welcome to HC Shopify Admin App") }}</h1>
       </ion-list>
     </ion-content>
   </ion-page>
