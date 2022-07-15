@@ -123,9 +123,7 @@ export default defineComponent({
       this.store.dispatch('order/setCurrentDraftOrderId', this.$route.query.id);
     }
     await this.store.dispatch('order/getDraftOrder', {id: this.orderId, configId: this.configId });
-    const productIds = await this.order.line_items.map((item: any) => {
-      return item.sku;
-    }).filter((id: any) => id);
+    const productIds = await this.order.line_items.map((item: any) => item.sku).filter((id: any) => id);
     this.checkPreorderItemAvailability = await this.store.dispatch('shop/checkPreorderItemAvailability', productIds);
   },
   methods: {

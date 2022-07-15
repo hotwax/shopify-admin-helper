@@ -18,7 +18,7 @@ const getShopifyConfigId = async (payload: any): Promise <any>  => {
 
 const checkPreorderItemAvailability = async (payload: any): Promise <any>  => {
   return api({
-    url: "/checkPreorderItemAvailability",
+    url: "checkPreorderItemAvailability",
     method: "get",
     data: payload
   });
