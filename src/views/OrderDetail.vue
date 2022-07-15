@@ -137,7 +137,7 @@ export default defineComponent({
       if(event.detail.checked){
         const address = `${this.shopifyStore.storeName}, ${this.shopifyStore.address1}, ${this.shopifyStore.city}`
         item.properties.push({ name: '_pickupstore', value: this.shopifyStore.storeCode }, { name: 'Pickup Store', value: address })  
-      } else if(event.detail.value){
+      } else if(event.detail.value === true){
         const product = this.checkPreorderItemAvailability.find((product: any) => product.sku == item.sku)
         if(product){
           item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: product.estimatedDeliveryDate })
@@ -159,9 +159,7 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(sku: any, label: string){
-      const item = this.checkPreorderItemAvailability.find((item: any) => {
-        return item.sku == sku && item.label === label
-      });
+      const item = this.checkPreorderItemAvailability.find((item: any) => item.sku == sku && item.label === label);
       if(item){
         return item.estimatedDeliveryDate;
       }
