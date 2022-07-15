@@ -13,7 +13,7 @@
           <ion-list>
             <ion-item lines="none">
               <ion-label>
-                <h2>{{order.customer?.first_name}} {{ order.customer?.last_name }}</h2>
+                <h2>{{ order.customer?.first_name }} {{ order.customer?.last_name }}</h2>
                 <p>CSR name</p>
               </ion-label>
               <ion-note slot="end">{{ timeFromNow(order?.created_at) }}</ion-note>
