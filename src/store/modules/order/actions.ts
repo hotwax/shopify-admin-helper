@@ -17,7 +17,9 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.response.draft_order) {
         const productId = resp.data.response.draft_order.line_items.map((item: any) =>  item.sku );
         const store = this.getters['shop/getStore'];
-        this.dispatch('stock/checkInventory', {productId, facilityId: store.storeCode});
+        if(store){
+          this.dispatch('stock/checkInventory', {productId, facilityId: store.storeCode});
+        }
         const order = resp.data.response.draft_order;
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
