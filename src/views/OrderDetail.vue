@@ -43,9 +43,9 @@
                 <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'PRE-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "PRE-ORDER") ? getEstimatedDeliveryDate(item.sku, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
               <ion-item class="border-top">
-                <ion-radio :disabled="checkPreOrderAvailability(item, 'BACK-ORDER')" slot="start" value="Back Order" />
+                <ion-radio :disabled="checkPreOrderAvailability(item, 'BACKORDER')" slot="start" value="Back Order" />
                 <ion-label >{{ $t("Back Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'BACK-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "BACK-ORDER") ? getEstimatedDeliveryDate(item.sku, "BACK-ORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "BACKORDER") ? getEstimatedDeliveryDate(item.sku, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
           </ion-card>
