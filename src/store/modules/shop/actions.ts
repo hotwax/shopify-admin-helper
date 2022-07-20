@@ -28,9 +28,11 @@ const actions: ActionTree<ShopState, RootState> = {
         commit(types.SHOP_CONFIG_ID_UPDATED, resp.data.docs[0].shopifyConfigId)
       } else {
         console.error(resp);
+        commit(types.SHOP_CONFIG_ID_UPDATED, "");
       }
     } catch (err) {
       console.error(err);
+      commit(types.SHOP_CONFIG_ID_UPDATED, "");
     }
   }, 
   async getStore({commit}) {
