@@ -8,6 +8,15 @@ const checkInventory = async (query: any): Promise <any> => {
   });
 }
 
+const checkPreorderItemAvailability = async (payload: any): Promise <any>  => {
+  return api({
+    url: "checkPreorderItemAvailability",
+    method: "get",
+    params: payload
+  });
+}
+
 export const StockService = {
-  checkInventory
+  checkInventory,
+  checkPreorderItemAvailability
 }

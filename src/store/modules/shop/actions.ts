@@ -2,7 +2,7 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShopState from './ShopState'
 import * as types from './mutation-types'
-import { getShopifyConfigId, getStore, checkPreorderItemAvailability } from "@/services"
+import { getShopifyConfigId, getStore } from "@/services"
 import { hasError } from '@/utils'
 
 const actions: ActionTree<ShopState, RootState> = {
@@ -49,28 +49,6 @@ const actions: ActionTree<ShopState, RootState> = {
     } catch(err) {
       console.error(err);
     }
-  },
-  async checkPreorderItemAvailability ({commit}, productIds) {
-    let resp;
-    const payload = {
-      "viewIndex": 0,
-      "viewSize": productIds.length,
-      "filters": {
-        "sku": productIds,
-        "sku_op": "in"
-      }
-    }
-    try {
-      resp = await checkPreorderItemAvailability(payload);
-      if (resp.status == 200 && !hasError(resp) && resp.data?.docs) {
-        return resp.data.docs
-      } else {
-        return [];
-      }
-    } catch (err) {
-      console.error(err);
-      return [];
-    }
-  }      
+  }
 }
 export default actions;

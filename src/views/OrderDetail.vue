@@ -38,14 +38,14 @@
             </ion-item>
             <ion-radio-group :value="isSelected(item)" @ionChange="addProperty(item, $event)">
               <ion-item class="border-top">
-                <ion-radio :disabled="checkPreOrderAvailability(item, 'PREORDER')" slot="start" value="Pre Order" />
+                <ion-radio :disabled="checkPreOrderAvailability(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'PREORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "PREORDER") ? getEstimatedDeliveryDate(item.sku, "PREORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'PRE-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "PRE-ORDER") ? getEstimatedDeliveryDate(item.sku, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
               <ion-item class="border-top">
-                <ion-radio :disabled="checkPreOrderAvailability(item, 'BACKORDER')" slot="start" value="Back Order" />
+                <ion-radio :disabled="checkPreOrderAvailability(item, 'BACK-ORDER')" slot="start" value="Back Order" />
                 <ion-label >{{ $t("Back Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "BACKORDER") ? getEstimatedDeliveryDate(item.sku, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'BACK-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "BACK-ORDER") ? getEstimatedDeliveryDate(item.sku, "BACK-ORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
           </ion-card>
@@ -125,7 +125,7 @@ export default defineComponent({
     }
     await this.store.dispatch('order/getDraftOrder', {id: this.orderId, configId: this.configId });
     const productIds = await this.order.line_items.map((item: any) => item.sku).filter((id: any) => id);
-    this.checkPreorderItemAvailability = await this.store.dispatch('shop/checkPreorderItemAvailability', productIds);
+    this.checkPreorderItemAvailability = await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
   },
   methods: {
     checkPreOrderAvailability(item: any, label: string){
@@ -162,7 +162,7 @@ export default defineComponent({
     getEstimatedDeliveryDate(sku: any, label: string){
       const item = this.checkPreorderItemAvailability.find((item: any) => item.sku == sku && item.label === label);
       if(item){
-        return item.estimatedDeliveryDate;
+        return DateTime.fromISO(item.estimatedDeliveryDate).toFormat('D');
       }
     }
   },
