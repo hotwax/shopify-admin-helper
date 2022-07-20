@@ -51,10 +51,6 @@ const actions: ActionTree<OrderState, RootState> = {
     }
   },
 
-  setCurrentDraftOrderId({ commit }, payload){
-    commit(types.DRAFT_ORDER_ID_UPDATED, payload);
-  },
-
   checkInventory({ commit }, productSkus){
     const store = this.state.shop.getStore;
     if(store){

@@ -66,7 +66,6 @@ export default defineComponent({
   },
   mounted() {
     this.store.dispatch('shop/setShop', this.$route.redirectedFrom?.query.shop);
-    this.store.dispatch('order/setCurrentDraftOrderId', this.$route.redirectedFrom?.query.id);
     const shop = this.shop as any;
     const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
     this.instanceUrl = shopConfig[shop]?.oms;
@@ -81,6 +80,7 @@ export default defineComponent({
         if (data.token && this.shopifyConfig) {
           this.username = ''
           this.password = ''
+          await this.store.dispatch('order/getDraftOrder', {id: this.$route.redirectedFrom?.query.id, shopifyConfigId: this.shopifyConfig });
           this.$router.push('/order-detail');
         } else {
           showToast(translate("Shopify Configuration missing. You can not login."))

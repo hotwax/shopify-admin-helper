@@ -108,7 +108,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
-      orderId: 'order/getCurrentDraftOrderId',
       shopifyConfigId: 'shop/getShopConfigId',
       shopifyStore: 'shop/getStore',
       getProductStock: 'stock/getProductStock',
@@ -117,10 +116,9 @@ export default defineComponent({
   },
 
   async mounted(){
-    if(this.$route.query.id){
-      this.store.dispatch('order/setCurrentDraftOrderId', this.$route.query.id);
+    if (this.$route.query.id) {
+      await this.store.dispatch('order/getDraftOrder', {id: this.$route.query.id, shopifyConfigId: this.shopifyConfigId });
     }
-    await this.store.dispatch('order/getDraftOrder', {id: this.orderId, shopifyConfigId: this.shopifyConfigId });
     const productIds = await this.order.line_items.map((item: any) => item.sku).filter((id: any) => id);
     await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
   },
@@ -141,7 +139,7 @@ export default defineComponent({
       }
     },
     updateDraftOrder (lineItems: any) {
-      const id = this.orderId;
+      const id = this.order.id;
       this.store.dispatch('order/updateDraftOrder', {lineItems, id, shopifyConfigId: this.shopifyConfigId});
     },
     isSelected (item: any) {
