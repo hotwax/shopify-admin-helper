@@ -25,26 +25,36 @@ const actions: ActionTree<StockState, RootState> = {
       console.error(err);
     }
   },
-  async checkPreorderItemAvailability ({commit}, productIds) {
+  async checkPreorderItemAvailability ({ commit, state }, productIds) {
     let resp;
-    const payload = {
-      "viewIndex": 0,
-      "viewSize": productIds.length,
-      "filters": {
-        "sku": productIds,
-        "sku_op": "in"
+    const cachedProductIds = Object.keys(state.preorderItemAvailability);
+    const productIdFilter= productIds.reduce((filter: any, productId: any) => {
+      // If product already exist in cached products skip
+      if (!cachedProductIds.includes(productId)) {
+        filter.push(productId);
       }
-    }
-    try {
-      resp = await StockService.checkPreorderItemAvailability(payload);
-      if (resp.status == 200 && !hasError(resp) && resp.data?.docs) {
-        return resp.data.docs
-      } else {
-        return [];
+      return filter;
+    }, []);
+    if(productIdFilter){
+      const payload = {
+        "viewIndex": 0,
+        "viewSize": productIdFilter.length,
+        "filters": {
+          "sku": productIdFilter,
+          "sku_op": "in"
+        }
       }
-    } catch (err) {
-      console.error(err);
-      return [];
+      try {
+        resp = await StockService.checkPreorderItemAvailability(payload);
+        if (resp.status == 200 && !hasError(resp) && resp.data?.docs) {
+          commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, resp.data.docs)
+        } else {
+          commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, []);
+        }
+      } catch (err) {
+        console.error(err);
+        commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, []);
+      }
     }
   }
 }

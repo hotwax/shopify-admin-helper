@@ -9,6 +9,7 @@ const stockModule: Module<StockState, RootState> = {
   namespaced: true,
   state: {
     products: [],
+    preorderItemAvailability: [],
   },
   getters,
   actions,

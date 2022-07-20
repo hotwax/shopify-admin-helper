@@ -7,19 +7,16 @@ import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
 
 const actions: ActionTree<OrderState, RootState> = {
-  async getDraftOrder ({ commit }, params) {
+  async getDraftOrder ({ commit, dispatch }, params) {
     const payload = {
       draftOrderId: params.id,
-      shopifyConfigId: params.configId
+      shopifyConfigId: params.shopifyConfigId
     }
     try {
       const resp = await OrderService.getDraftOrder(payload);
       if (resp.status === 200 && !hasError(resp) && resp.data.response.draft_order) {
-        const productSku = resp.data.response.draft_order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
-        const store = this.getters['shop/getStore'];
-        if(store){
-          this.dispatch('stock/checkInventory', {sku: productSku, facilityId: store.storeCode});
-        }
+        const productSkus = resp.data.response.draft_order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
+        dispatch('checkInventory', productSkus);
         const order = resp.data.response.draft_order;
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
@@ -32,18 +29,18 @@ const actions: ActionTree<OrderState, RootState> = {
     }
   },
 
-  async updateDraftOrder ({dispatch}, payload) {
+  async updateDraftOrder ({ dispatch }, payload) {
     let resp;
     const params = {
       draftOrderId: payload.id,
-      payload: {"draft_order": {"line_items": payload.lineItems}},
-      shopifyConfigId: payload.configId
+      payload: {"draft_order": { "line_items": payload.lineItems }},
+      shopifyConfigId: payload.shopifyConfigId
     }
     try {
       resp = await OrderService.updateDraftOrder(params);
       if (resp.status === 200 && !hasError(resp)) {
         showToast(translate("Order Updated successfully."));
-        await dispatch('getDraftOrder', {id: payload.id, configId: payload.configId});
+        await dispatch('getDraftOrder', {id: payload.id, shopifyConfigId: payload.shopifyConfigId});
       } else {
         console.error(resp);
         showToast(translate("Something went wrong"));
@@ -54,8 +51,15 @@ const actions: ActionTree<OrderState, RootState> = {
     }
   },
 
-  setCurrentDraftOrderId({commit}, payload){
+  setCurrentDraftOrderId({ commit }, payload){
     commit(types.DRAFT_ORDER_ID_UPDATED, payload);
+  },
+
+  checkInventory({ commit }, productSkus){
+    const store = this.state.shop.getStore;
+    if(store){
+      this.dispatch('stock/checkInventory', { sku: productSkus, facilityId: store?.storeCode });
+    }
   }
 }
 export default actions;

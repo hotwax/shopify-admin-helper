@@ -109,37 +109,32 @@ export default defineComponent({
     ...mapGetters({
       order: 'order/getDraftOrder',
       orderId: 'order/getCurrentDraftOrderId',
-      configId: 'shop/getShopConfigId',
+      shopifyConfigId: 'shop/getShopConfigId',
       shopifyStore: 'shop/getStore',
-      getProductStock: 'stock/getProductStock'
+      getProductStock: 'stock/getProductStock',
+      getPreorderItemAvailability: 'stock/getPreorderItemAvailability'
     })
   },
-  data(){
-    return {
-      checkPreorderItemAvailability: [] as any
-    }
-  },
+
   async mounted(){
     if(this.$route.query.id){
       this.store.dispatch('order/setCurrentDraftOrderId', this.$route.query.id);
     }
-    await this.store.dispatch('order/getDraftOrder', {id: this.orderId, configId: this.configId });
+    await this.store.dispatch('order/getDraftOrder', {id: this.orderId, shopifyConfigId: this.shopifyConfigId });
     const productIds = await this.order.line_items.map((item: any) => item.sku).filter((id: any) => id);
-    this.checkPreorderItemAvailability = await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
+    await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
   },
   methods: {
     checkPreOrderAvailability(item: any, label: string){
-      const product = this.checkPreorderItemAvailability.some((product: any) => {
-        return product.sku == item.sku && product.label == label
-      })
-      return !product;
+      const product = this.getPreorderItemAvailability(item.sku);  
+      return !(product.label === label);
     },
     addProperty (item: any, event: any) {
       if(event.detail.checked){
         const address = `${this.shopifyStore.storeName}, ${this.shopifyStore.address1}, ${this.shopifyStore.city}`
         item.properties.push({ name: '_pickupstore', value: this.shopifyStore.storeCode }, { name: 'Pickup Store', value: address })  
       } else if(event.detail.value === "Pre Order" || event.detail.value === "Back Order"){
-        const product = this.checkPreorderItemAvailability.find((product: any) => product.sku == item.sku)
+        const product = this.getPreorderItemAvailability(item.sku)
         if(product){
           item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: product.estimatedDeliveryDate })
         }
@@ -147,7 +142,7 @@ export default defineComponent({
     },
     updateDraftOrder (lineItems: any) {
       const id = this.orderId;
-      this.store.dispatch('order/updateDraftOrder', {lineItems, id, configId: this.configId});
+      this.store.dispatch('order/updateDraftOrder', {lineItems, id, shopifyConfigId: this.shopifyConfigId});
     },
     isSelected (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
@@ -160,9 +155,9 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(sku: any, label: string){
-      const item = this.checkPreorderItemAvailability.find((item: any) => item.sku == sku && item.label === label);
-      if(item){
-        return DateTime.fromISO(item.estimatedDeliveryDate).toFormat('D');
+      const product = this.getPreorderItemAvailability(sku);
+      if(product.label === label){
+        return DateTime.fromISO(product.estimatedDeliveryDate).toFormat('D');
       }
     }
   },
