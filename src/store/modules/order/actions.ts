@@ -16,7 +16,7 @@ const actions: ActionTree<OrderState, RootState> = {
       const resp = await OrderService.getDraftOrder(payload);
       if (resp.status === 200 && !hasError(resp) && resp.data.response.draft_order) {
         const productSkus = resp.data.response.draft_order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
-        dispatch('checkInventory', productSkus);
+        this.dispatch('stock/checkInventory', productSkus);
         const order = resp.data.response.draft_order;
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
@@ -48,14 +48,6 @@ const actions: ActionTree<OrderState, RootState> = {
     } catch (err) {
       console.error(err);
       showToast(translate("Something went wrong"));
-    }
-  },
-
-  checkInventory({ commit }, productSkus){
-    const stores = this.state.shop.stores;
-    if (stores.length > 0) {
-      const facilityIds = stores.map((facility: any) => facility.storeCode);
-      this.dispatch('stock/checkInventory', { productSkus, facilityIds });
     }
   }
 }
