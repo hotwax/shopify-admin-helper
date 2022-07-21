@@ -32,7 +32,7 @@
               </ion-label>
             </ion-item>
             <ion-item>
-              <ion-checkbox :disabled="!getProductStock(item.sku, shopifyStore[0]?.storeCode)" slot="start" @ionChange="addProperty(item, $event)" />
+              <ion-checkbox slot="start" @ionChange="addProperty(item, $event)" />
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.sku, shopifyStore[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
@@ -134,7 +134,7 @@ export default defineComponent({
       } else if(event.detail.value === "Pre Order" || event.detail.value === "Back Order"){
         const product = this.getPreorderItemAvailability(item.sku)
         if(product){
-          item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: product.estimatedDeliveryDate })
+          item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
         }
       }
     },
@@ -155,7 +155,7 @@ export default defineComponent({
     getEstimatedDeliveryDate(sku: any, label: string){
       const product = this.getPreorderItemAvailability(sku);
       if(product.label === label){
-        return DateTime.fromISO(product.estimatedDeliveryDate).toFormat('D');
+        return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
     }
   },
