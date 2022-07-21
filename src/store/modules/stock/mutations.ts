@@ -12,7 +12,7 @@ const mutations: MutationTree <StockState> = {
   },
   [types.STOCK_ITEM_AVAILABILITY_UPDATED] (state, payload) {
     payload.forEach((product: any) => {
-      state.preorderItemAvailability[product.sku] = { ...product }
+      state.preorder[product.sku] = { ...product }
     });
   }
 }

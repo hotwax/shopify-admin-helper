@@ -11,7 +11,7 @@ const getters: GetterTree <StockState, RootState> = {
     }
   },
   getPreorderItemAvailability: (state) => (productId: string) => {
-    return state.preorderItemAvailability[productId] ? state.preorderItemAvailability[productId] : {}
+    return state.preorder[productId] ? state.preorder[productId] : {}
   },
 }
 export default getters;

@@ -28,7 +28,7 @@ const actions: ActionTree<StockState, RootState> = {
   },
   async checkPreorderItemAvailability ({ commit, state }, productIds) {
     let resp;
-    const cachedProductIds = Object.keys(state.preorderItemAvailability);
+    const cachedProductIds = Object.keys(state.preorder);
     const productIdFilter= productIds.reduce((filter: any, productId: any) => {
       // If product already exist in cached products skip
       if (!cachedProductIds.includes(productId)) {
