@@ -4,11 +4,7 @@ import RootState from '@/store/RootState'
 
 const getters: GetterTree <StockState, RootState> = {
   getProductStock: (state) => (sku: string, facilityId: string) => {
-    if(state.products[sku]){
-      return state.products[sku][facilityId] ? state.products[sku][facilityId] : 0
-    } else {
-      return 0;
-    }
+    return state.products[sku] ? state.products[sku][facilityId] ? state.products[sku][facilityId] : 0 : 0
   },
   getPreorderItemAvailability: (state) => (productId: string) => {
     return state.preorder[productId] ? state.preorder[productId] : {}
