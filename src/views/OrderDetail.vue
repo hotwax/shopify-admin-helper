@@ -36,7 +36,7 @@
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.sku, shopifyStore[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
-            <ion-radio-group :value="isSelected(item)" @ionChange="addProperty(item, $event)">
+            <ion-radio-group :value="isPreorderBackorder(item)" @ionChange="addProperty(item, $event)">
               <ion-item class="border-top">
                 <ion-radio :disabled="checkPreOrderAvailability(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
@@ -119,8 +119,6 @@ export default defineComponent({
     if (this.$route.query.id) {
       await this.store.dispatch('order/getDraftOrder', {id: this.$route.query.id, shopifyConfigId: this.shopifyConfigId });
     }
-    const productIds = await this.order.line_items.map((item: any) => item.sku).filter((id: any) => id);
-    await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
   },
   methods: {
     isBopis(item: any){
@@ -132,20 +130,16 @@ export default defineComponent({
     },
     addProperty (item: any, event: any) {
       if(event.detail.checked){
-        const address = `${this.shopifyStore[0].storeName}, ${this.shopifyStore[0].address1}, ${this.shopifyStore[0].city}`
-        item.properties.push({ name: '_pickupstore', value: this.shopifyStore[0].storeCode }, { name: 'Pickup Store', value: address })
+        this.store.dispatch('order/markBopisItem', item);
       } else if(event.detail.value === "Pre Order" || event.detail.value === "Back Order"){
-        const product = this.getPreorderItemAvailability(item.sku)
-        if(product){
-          item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
-        }
+        this.store.dispatch('order/markPreorderBackorderItem', { item, value: event.detail.value });
       }
     },
     updateDraftOrder (lineItems: any) {
       const id = this.order.id;
       this.store.dispatch('order/updateDraftOrder', {lineItems, id, shopifyConfigId: this.shopifyConfigId});
     },
-    isSelected (item: any) {
+    isPreorderBackorder (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
       return property ?  property :  "None";
     },

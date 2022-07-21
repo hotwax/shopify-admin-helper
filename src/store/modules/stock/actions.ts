@@ -52,12 +52,9 @@ const actions: ActionTree<StockState, RootState> = {
         resp = await StockService.checkPreorderItemAvailability(payload);
         if (resp.status === 200 && !hasError(resp) && resp.data?.docs) {
           commit(types.STOCK_PREODR_AVLBLTY_UPDATED, resp.data.docs)
-        } else {
-          commit(types.STOCK_PREODR_AVLBLTY_UPDATED, []);
         }
       } catch (err) {
         console.error(err);
-        commit(types.STOCK_PREODR_AVLBLTY_UPDATED, []);
       }
     }
   }
