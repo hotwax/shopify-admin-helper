@@ -32,7 +32,7 @@
               </ion-label>
             </ion-item>
             <ion-item>
-              <ion-checkbox slot="start" @ionChange="addProperty(item, $event)" />
+              <ion-checkbox :checked="isBopis(item)" slot="start" @ionChange="addProperty(item, $event)" />
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.sku, shopifyStore[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
@@ -123,6 +123,9 @@ export default defineComponent({
     await this.store.dispatch('stock/checkPreorderItemAvailability', productIds);
   },
   methods: {
+    isBopis(item: any){
+      return item.properties.some((property: any) => property.name === "Pickup Store");
+    },
     checkPreOrderAvailability(item: any, label: string){
       const product = this.getPreorderItemAvailability(item.sku);  
       return !(product.label === label);
