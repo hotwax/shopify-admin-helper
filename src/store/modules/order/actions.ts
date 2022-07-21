@@ -55,7 +55,7 @@ const actions: ActionTree<OrderState, RootState> = {
     const stores = this.state.shop.stores;
     if (stores.length > 0) {
       const facilityIds = stores.map((facility: any) => facility.storeCode);
-      this.dispatch('stock/checkInventory', { sku: productSkus, facilityId: facilityIds });
+      this.dispatch('stock/checkInventory', { productSkus, facilityIds });
     }
   }
 }

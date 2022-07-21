@@ -9,10 +9,10 @@ const actions: ActionTree<StockState, RootState> = {
   async checkInventory({commit}, params) {
     let resp;
     const payload = {
-      "viewSize": params.productId?.length,
+      "viewSize": params.productSkus?.length,
       "filters":{
-        "facilityId": params.facilityId,
-        "sku": params.sku
+        "facilityId": params.facilityIds,
+        "sku": params.productSkus
       },
       "fieldsToSelect": ["sku", "atp", "facilityId"],
     }
