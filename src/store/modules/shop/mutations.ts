@@ -15,8 +15,8 @@ const mutations: MutationTree <ShopState> = {
   [types.SHOP_CONFIG_ID_UPDATED] (state, payload) {
     state.configId = payload;
   },
-  [types.SHOP_STORE_UPDATED] (state, payload) {
-    state.store = payload
+  [types.SHOP_STORES_UPDATED] (state, payload) {
+    state.stores = payload
   }
 
 }

@@ -2,7 +2,7 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShopState from './ShopState'
 import * as types from './mutation-types'
-import { getShopifyConfigId, getStore } from "@/services"
+import { getShopifyConfigId, getStores } from "@/services"
 import { hasError } from '@/utils'
 
 const actions: ActionTree<ShopState, RootState> = {
@@ -35,16 +35,17 @@ const actions: ActionTree<ShopState, RootState> = {
       commit(types.SHOP_CONFIG_ID_UPDATED, "");
     }
   }, 
-  async getStore({commit}) {
+  async getStores({commit}) {
     let resp;
     const payload = {
-      "viewSize": 20
+      //Increased the viewSize as we have not implemented infinite scroll, will use the default when UI is updated.
+      "viewSize": 50
     }
 
     try {
-      resp = await getStore(payload);
+      resp = await getStores(payload);
       if(resp.status == 200 && !hasError(resp) && resp.data.response?.docs){
-        commit(types.SHOP_STORE_UPDATED, resp.data.response.docs[0])
+        commit(types.SHOP_STORES_UPDATED, resp.data.response.docs);
       } else {
         console.error(resp);
       }

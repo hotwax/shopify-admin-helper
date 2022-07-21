@@ -4,8 +4,10 @@ import * as types from './mutation-types'
 
 const mutations: MutationTree <StockState> = {
   [types.STOCK_PRODUCTS_UPDATED] (state, payload) {
-    payload.products.forEach((product: any) => {
-      state.products[product.productId] = product.atp
+    payload.forEach((product: any) => {
+      if (product.sku) {
+        state.products[product.sku] ? state.products[product.sku][product.facilityId] = product.atp : state.products = { ...state.products, [product.sku]: { [product.facilityId]: product.atp }}
+      }
     });
   },
   [types.STOCK_ITEM_AVAILABILITY_UPDATED] (state, payload) {

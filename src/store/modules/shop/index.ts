@@ -11,7 +11,7 @@ const shopModule: Module<ShopState, RootState> = {
     token: '',
     shop: '',
     configId: '',
-    store: {}
+    stores: {}
   },
   getters,
   actions,

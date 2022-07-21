@@ -32,9 +32,9 @@
               </ion-label>
             </ion-item>
             <ion-item>
-              <ion-checkbox :disabled="!getProductStock(item.productSku)" slot="start" @ionChange="addProperty(item, $event)" />
+              <ion-checkbox :disabled="!getProductStock(item.sku, shopifyStore[1]?.storeCode)" slot="start" @ionChange="addProperty(item, $event)" />
               <ion-label>{{ $t("Pickup") }}</ion-label>
-              <ion-note slot="end">{{ getProductStock(item.productSku) }} {{ $t("in stock") }}</ion-note>
+              <ion-note slot="end">{{ getProductStock(item.sku, shopifyStore[1]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
             <ion-radio-group :value="isSelected(item)" @ionChange="addProperty(item, $event)">
               <ion-item class="border-top">
@@ -109,7 +109,7 @@ export default defineComponent({
     ...mapGetters({
       order: 'order/getDraftOrder',
       shopifyConfigId: 'shop/getShopConfigId',
-      shopifyStore: 'shop/getStore',
+      shopifyStore: 'shop/getStores',
       getProductStock: 'stock/getProductStock',
       getPreorderItemAvailability: 'stock/getPreorderItemAvailability'
     })

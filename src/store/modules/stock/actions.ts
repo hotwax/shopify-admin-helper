@@ -13,7 +13,8 @@ const actions: ActionTree<StockState, RootState> = {
       "filters":{
         "facilityId": params.facilityId,
         "sku": params.sku
-      } 
+      },
+      "fieldsToSelect": ["sku", "atp", "facilityId"],
     }
 
     try {

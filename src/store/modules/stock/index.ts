@@ -8,7 +8,7 @@ import RootState from '@/store/RootState'
 const stockModule: Module<StockState, RootState> = {
   namespaced: true,
   state: {
-    products: [],
+    products: {},
     preorderItemAvailability: [],
   },
   getters,

@@ -16,7 +16,7 @@ const getShopifyConfigId = async (payload: any): Promise <any>  => {
   });
 }
 
-const getStore = async (payload: any): Promise <any> => {
+const getStores = async (payload: any): Promise <any> => {
   return api({
     url: "storeLookup",
     method: 'post',
@@ -27,5 +27,5 @@ const getStore = async (payload: any): Promise <any> => {
 export {
   generateAccessToken,
   getShopifyConfigId,
-  getStore
+  getStores
 }
