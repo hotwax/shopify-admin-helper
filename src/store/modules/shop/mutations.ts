@@ -18,6 +18,5 @@ const mutations: MutationTree <ShopState> = {
   [types.SHOP_STORES_UPDATED] (state, payload) {
     state.stores = payload
   }
-
 }
 export default mutations;
