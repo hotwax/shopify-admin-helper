@@ -36,7 +36,7 @@ const actions: ActionTree<StockState, RootState> = {
       }
       return filter;
     }, []);
-    if(productIdFilter){
+    if(productIdFilter.length > 0){
       const payload = {
         "viewIndex": 0,
         "viewSize": productIdFilter.length,
