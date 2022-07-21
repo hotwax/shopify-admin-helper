@@ -23,7 +23,7 @@ const actions: ActionTree<StockState, RootState> = {
       try {
         resp = await StockService.checkInventory(payload);
         if(resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0){
-          commit(types.STOCK_PRODUCTS_UPDATED, resp.data.docs)
+          commit(types.STOCK_PRDCTS_BY_FACLTY_UPDATED, resp.data.docs)
         }
       } catch (err) {
         console.error(err);
@@ -51,13 +51,13 @@ const actions: ActionTree<StockState, RootState> = {
       try {
         resp = await StockService.checkPreorderItemAvailability(payload);
         if (resp.status === 200 && !hasError(resp) && resp.data?.docs) {
-          commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, resp.data.docs)
+          commit(types.STOCK_PREODR_AVLBLTY_UPDATED, resp.data.docs)
         } else {
-          commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, []);
+          commit(types.STOCK_PREODR_AVLBLTY_UPDATED, []);
         }
       } catch (err) {
         console.error(err);
-        commit(types.STOCK_ITEM_AVAILABILITY_UPDATED, []);
+        commit(types.STOCK_PREODR_AVLBLTY_UPDATED, []);
       }
     }
   }
