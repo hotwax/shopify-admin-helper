@@ -34,7 +34,7 @@
             <ion-item>
               <ion-checkbox :checked="isBopisItem(item)" slot="start" @ionChange="markBopisItem(item, $event)" />
               <ion-label>{{ $t("Pickup") }}</ion-label>
-              <ion-note slot="end">{{ getProductStock(item.sku, shopifyStore[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
+              <ion-note slot="end">{{ getProductStock(item.sku, shopifyStores[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
             <ion-radio-group :value="isPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
               <ion-item class="border-top">
@@ -108,7 +108,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
-      shopifyStore: 'shop/getStores',
+      shopifyStores: 'shop/getStores',
       getProductStock: 'stock/getProductStock',
       getPreorderItemAvailability: 'stock/getPreorderItemAvailability'
     })
@@ -128,10 +128,21 @@ export default defineComponent({
       return !(product.label === label);
     },
     markBopisItem (item: any, event: any) {
-      this.store.dispatch('order/markBopisItem', { item, isBopis: this.isBopisItem(item) });
+      if(this.isBopisItem(item)){
+        item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Pickup Store'))
+      } else {
+        const store = this.shopifyStores[0];
+        const address = [store.storename, store.address1, store.city].filter((value: any) => value).join(", ");
+        item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Pickup Store', value: address })
+      }
+      this.store.dispatch('order/updateLineItems', this.order)
     },
     markPreorderBackorderItem (item: any, event: any) {
-      this.store.dispatch('order/markPreorderBackorderItem', { item, value: event.detail.value });
+      const product = this.getPreorderItemAvailability(item.sku)
+      if(product){
+        item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
+      }
+      this.store.dispatch('order/updateLineItems', this.order);
     },
     updateDraftOrder () {
       this.store.dispatch('order/updateDraftOrder', this.order);

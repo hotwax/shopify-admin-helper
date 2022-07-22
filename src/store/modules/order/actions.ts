@@ -52,20 +52,8 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
   },
-  markBopisItem({ commit }, payload){
-    if(payload.isBopis){
-      payload.item.properties = payload.item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Pickup Store'))
-    } else {
-      const store = this.state.shop.stores[0];
-      const address = [store.storename, store.address1, store.city].filter((value: any) => value).join(", ");
-      payload.item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Pickup Store', value: address })
-    }
-  },
-  markPreorderBackorderItem({ commit }, payload){
-    const product = this.state.stock.getPreorderItemAvailability(payload.item.sku)
-    if(product){
-      payload.item.properties.push({ name: 'Note', value: payload.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
-    }
+  updateLineItems({ commit }, order){
+    commit(types.DRAFT_ORDER_UPDATED, order);
   }
 }
 export default actions;
