@@ -57,7 +57,7 @@ const actions: ActionTree<OrderState, RootState> = {
       payload.item.properties = payload.item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Pickup Store'))
     } else {
       const store = this.state.shop.stores[0];
-      let address = [store.storename, store.address1, store.city].filter((value: any) => value).join(", ");
+      const address = [store.storename, store.address1, store.city].filter((value: any) => value).join(", ");
       payload.item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Pickup Store', value: address })
     }
   },

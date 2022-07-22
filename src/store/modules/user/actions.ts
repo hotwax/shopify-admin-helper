@@ -5,7 +5,6 @@ import RootState from '@/store/RootState'
 import UserState from './UserState'
 import { hasError, showToast } from '@/utils'
 import * as types from './mutation-types'
-import * as shopTypes from '@/store/modules/shop/mutation-types'
 import { translate } from '@/i18n'
 import store from '@/store'
 
@@ -31,7 +30,7 @@ const actions: ActionTree<UserState, RootState> = {
             }
           })
           if(shopifyConfigIdResp.status === 200 && !hasError(shopifyConfigIdResp) && shopifyConfigIdResp.data?.docs){
-            commit(shopTypes.SHOP_CONFIG_ID_UPDATED, shopifyConfigIdResp.data.docs[0].shopifyConfigId)
+            store.commit('shop/shop/CONFIG_ID_UPDATED', shopifyConfigIdResp.data.docs[0].shopifyConfigId)
             commit(types.USER_TOKEN_CHANGED, { newToken: resp.data.token })
             await dispatch('getProfile')
             return resp.data;
@@ -59,8 +58,8 @@ const actions: ActionTree<UserState, RootState> = {
   },
   async logout ({ commit }) {
     // TODO add any other tasks if need
-    commit(shopTypes.SHOP_CONFIG_ID_UPDATED, "");
-    commit(shopTypes.SHOP_STORES_UPDATED, {});
+    store.commit('shop/shop/CONFIG_ID_UPDATED', "");
+    store.commit('shop/shop/STORES_UPDATED', {});
     commit(types.USER_END_SESSION)
   },
   
