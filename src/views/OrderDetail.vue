@@ -141,8 +141,8 @@ export default defineComponent({
       const product = this.getPreorderItemAvailability(item.sku)
       if(product){
         item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
+        this.store.dispatch('order/updateLineItems', this.order);
       }
-      this.store.dispatch('order/updateLineItems', this.order);
     },
     updateDraftOrder () {
       this.store.dispatch('order/updateDraftOrder', this.order);
