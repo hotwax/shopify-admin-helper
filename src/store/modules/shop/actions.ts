@@ -12,29 +12,6 @@ const actions: ActionTree<ShopState, RootState> = {
   setShop({ commit }, payload) {
     commit(types.SHOP_UPDATED, { shop: payload })
   },
-  async getShopifyConfigId({commit}, shop){
-    let resp;
-    const payload = {
-      'inputFields': {
-        'apiUrl': `https://${shop}/`
-      },
-      "entityName": "ShopifyConfig",
-      "noConditionFind": "Y",
-      "fieldList": ['shopifyConfigId']
-    }
-    try {
-      resp = await getShopifyConfigId(payload);
-      if(resp.status === 200 && !hasError(resp) && resp.data?.docs){
-        commit(types.SHOP_CONFIG_ID_UPDATED, resp.data.docs[0].shopifyConfigId)
-      } else {
-        console.error(resp);
-        commit(types.SHOP_CONFIG_ID_UPDATED, "");
-      }
-    } catch (err) {
-      console.error(err);
-      commit(types.SHOP_CONFIG_ID_UPDATED, "");
-    }
-  }, 
   async getStores({commit}) {
     let resp;
     const payload = {

@@ -76,18 +76,12 @@ export default defineComponent({
       
       const { username, password } = this;
       this.store.dispatch("user/login", { username, password }).then( async (data: any) => {
-        await this.store.dispatch('shop/getShopifyConfigId', this.$route.query.shop ? this.$route.query.shop : this.$route.redirectedFrom?.query.shop );
-        if (data.token && this.shopifyConfig) {
+        if (data.token) {
           this.username = ''
           this.password = ''
           await this.store.dispatch('shop/getStores');
           this.store.dispatch('order/getDraftOrder', {id: this.$route.redirectedFrom?.query.id, shopifyConfigId: this.shopifyConfig });
           this.$router.push('/order-detail');
-        } else {
-          showToast(translate("Shopify Configuration missing. You can not login."))
-          this.store.dispatch('user/logout').then(() => {
-            this.router.push('/login');
-          })
         }
       })
     }
