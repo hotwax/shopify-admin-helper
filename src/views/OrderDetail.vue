@@ -40,12 +40,12 @@
               <ion-item class="border-top">
                 <ion-radio :disabled="checkPreOrderAvailability(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'PRE-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "PRE-ORDER") ? getEstimatedDeliveryDate(item.sku, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="isPreorderBackorderItem(item) || getEstimatedDeliveryDate(item, 'PRE-ORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "PRE-ORDER") ? getEstimatedDeliveryDate(item, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
               <ion-item class="border-top">
                 <ion-radio :disabled="checkPreOrderAvailability(item, 'BACKORDER')" slot="start" value="Back Order" />
                 <ion-label >{{ $t("Back Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item.sku, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item.sku, "BACKORDER") ? getEstimatedDeliveryDate(item.sku, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="isPreorderBackorderItem(item) || getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
           </ion-card>
@@ -152,8 +152,11 @@ export default defineComponent({
         return DateTime.local().plus(timeDiff).toRelative();
       }
     },
-    getEstimatedDeliveryDate(sku: any, label: string){
-      const product = this.getPreorderItemAvailability(sku);
+    getEstimatedDeliveryDate(item: any, label: string){
+      if(this.isPreorderBackorderItem(item)){
+        return item.properties.find((property: any) => property.name === "PROMISE_DATE")["PROMISE_DATE"];
+      }
+      const product = this.getPreorderItemAvailability(item.sku);
       if(product.label === label){
         return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
