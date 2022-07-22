@@ -17,7 +17,7 @@ const actions: ActionTree<OrderState, RootState> = {
       const resp = await OrderService.getDraftOrder(payload);
       if (resp.status === 200 && !hasError(resp) && resp.data.response.draft_order) {
         const productSkus = resp.data.response.draft_order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
-        this.dispatch('stock/checkInventory', productSkus);
+        this.dispatch('stock/checkInventoryByFacility', productSkus);
         this.dispatch('stock/checkPreorderItemAvailability', productSkus);
         const order = resp.data.response.draft_order;
         commit(types.DRAFT_ORDER_UPDATED, order);

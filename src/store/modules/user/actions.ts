@@ -5,6 +5,7 @@ import RootState from '@/store/RootState'
 import UserState from './UserState'
 import { hasError, showToast } from '@/utils'
 import * as types from './mutation-types'
+import * as shopTypes from '@/store/modules/shop/mutation-types'
 import { translate } from '@/i18n'
 import store from '@/store'
 
@@ -58,9 +59,8 @@ const actions: ActionTree<UserState, RootState> = {
   },
   async logout ({ commit }) {
     // TODO add any other tasks if need
-    // TODO need to import shop mutation types to use mutation type to commit the mutation.
-    store.commit('shop/shop/CONFIG_ID_UPDATED', "");
-    store.commit('shop/shop/STORES_UPDATED', {});
+    commit(shopTypes.SHOP_CONFIG_ID_UPDATED, "");
+    commit(shopTypes.SHOP_STORES_UPDATED, {});
     commit(types.USER_END_SESSION)
   },
   

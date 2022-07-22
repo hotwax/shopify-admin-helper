@@ -1,6 +1,6 @@
 import api from '@/api'
 
-const checkInventory = async (query: any): Promise <any> => {
+const checkInventoryByFacility = async (query: any): Promise <any> => {
   return api({
     url: "checkInventory", 
     method: "post",
@@ -17,6 +17,6 @@ const checkPreorderItemAvailability = async (payload: any): Promise <any>  => {
 }
 
 export const StockService = {
-  checkInventory,
+  checkInventoryByFacility,
   checkPreorderItemAvailability
 }

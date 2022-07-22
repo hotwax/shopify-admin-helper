@@ -6,13 +6,13 @@ import * as types from './mutation-types'
 import { hasError } from '@/utils'
 
 const actions: ActionTree<StockState, RootState> = {
-  async checkInventory({commit}, productSkus) {
+  async checkInventoryByFacility({commit}, productSkus) {
     const stores = this.state.shop.stores;
     if (stores.length > 0) {
       let resp;
       const facilityIds = stores.map((facility: any) => facility.storeCode);
       const payload = {
-        "viewSize": productSkus.length,
+        "viewSize": productSkus.length * facilityIds.length,
         "filters":{
           "facilityId": facilityIds,
           "sku": productSkus
@@ -21,7 +21,7 @@ const actions: ActionTree<StockState, RootState> = {
       }
   
       try {
-        resp = await StockService.checkInventory(payload);
+        resp = await StockService.checkInventoryByFacility(payload);
         if(resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0){
           commit(types.STOCK_PRDCTS_BY_FACLTY_UPDATED, resp.data.docs)
         }
