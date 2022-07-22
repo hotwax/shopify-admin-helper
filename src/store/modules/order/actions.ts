@@ -8,18 +8,18 @@ import { translate } from '@/i18n'
 import { DateTime } from 'luxon'
 
 const actions: ActionTree<OrderState, RootState> = {
-  async getDraftOrder ({ commit, dispatch }, params) {
+  async getDraftOrder ({ commit, dispatch }, orderId) {
     const payload = {
-      draftOrderId: params.id,
-      shopifyConfigId: params.shopifyConfigId
+      draftOrderId: orderId,
+      shopifyConfigId: this.state.shop.configId
     }
     try {
       const resp = await OrderService.getDraftOrder(payload);
-      if (resp.status === 200 && !hasError(resp) && resp.data.response.draft_order) {
-        const productSkus = resp.data.response.draft_order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
+      if (resp.status === 200 && !hasError(resp) && resp.data.response?.draft_order) {
+        const order = resp.data.response.draft_order;
+        const productSkus = order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
         this.dispatch('stock/checkInventoryByFacility', productSkus);
         this.dispatch('stock/checkPreorderItemAvailability', productSkus);
-        const order = resp.data.response.draft_order;
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
         console.error(resp);
@@ -31,18 +31,18 @@ const actions: ActionTree<OrderState, RootState> = {
     }
   },
 
-  async updateDraftOrder ({ dispatch }, payload) {
+  async updateDraftOrder ({ dispatch }, order) {
     let resp;
     const params = {
-      draftOrderId: payload.id,
-      payload: {"draft_order": { "line_items": payload.lineItems }},
-      shopifyConfigId: payload.shopifyConfigId
+      draftOrderId: order.id,
+      payload: {"draft_order": { "line_items": order.line_items }},
+      shopifyConfigId: this.state.shop.configId
     }
     try {
       resp = await OrderService.updateDraftOrder(params);
       if (resp.status === 200 && !hasError(resp)) {
         showToast(translate("Order Updated successfully."));
-        await dispatch('getDraftOrder', {id: payload.id, shopifyConfigId: payload.shopifyConfigId});
+        await dispatch('getDraftOrder', { id: order.id, shopifyConfigId: this.state.shop.configId });
       } else {
         console.error(resp);
         showToast(translate("Something went wrong"));
@@ -52,11 +52,16 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
   },
-  markBopisItem({commit}, item){
-    const address = `${this.state.shop.stores[0].storeName}, ${this.state.shop.stores[0].address1}, ${this.state.shop.stores[0].city}`
-    item.properties.push({ name: '_pickupstore', value: this.state.shop.stores[0].storeCode }, { name: 'Pickup Store', value: address })
+  markBopisItem({ commit }, payload){
+    if(payload.isBopis){
+      payload.item.properties.splice(payload.item.properties.indexOf((property: any) => property.name === '_pickupstore'), 1)
+      payload.item.properties.splice(payload.item.properties.indexOf((property: any) => property.name === 'Pickup Store'), 1)
+    } else {
+      const address = `${this.state.shop.stores[0].storeName}, ${this.state.shop.stores[0].address1}, ${this.state.shop.stores[0].city}`
+      payload.item.properties.push({ name: '_pickupstore', value: this.state.shop.stores[0].storeCode }, { name: 'Pickup Store', value: address })
+    }
   },
-  markPreorderBackorderItem({commit}, payload){
+  markPreorderBackorderItem({ commit }, payload){
     const product = this.state.stock.getPreorderItemAvailability(payload.item.sku)
     if(product){
       payload.item.properties.push({ name: 'Note', value: payload.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
