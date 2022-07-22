@@ -54,11 +54,11 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   markBopisItem({ commit }, payload){
     if(payload.isBopis){
-      payload.item.properties.splice(payload.item.properties.indexOf((property: any) => property.name === '_pickupstore'), 1)
-      payload.item.properties.splice(payload.item.properties.indexOf((property: any) => property.name === 'Pickup Store'), 1)
+      payload.item.properties = payload.item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Pickup Store'))
     } else {
-      const address = `${this.state.shop.stores[0].storeName}, ${this.state.shop.stores[0].address1}, ${this.state.shop.stores[0].city}`
-      payload.item.properties.push({ name: '_pickupstore', value: this.state.shop.stores[0].storeCode }, { name: 'Pickup Store', value: address })
+      const store = this.state.shop.stores[0];
+      let address = [store.storename, store.address1, store.city].filter((value: any) => value).join(", ");
+      payload.item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Pickup Store', value: address })
     }
   },
   markPreorderBackorderItem({ commit }, payload){
