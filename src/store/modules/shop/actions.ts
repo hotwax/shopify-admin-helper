@@ -2,7 +2,7 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShopState from './ShopState'
 import * as types from './mutation-types'
-import { getShopifyConfigId, getStores } from "@/services"
+import { getStores } from "@/services"
 import { hasError } from '@/utils'
 
 const actions: ActionTree<ShopState, RootState> = {
