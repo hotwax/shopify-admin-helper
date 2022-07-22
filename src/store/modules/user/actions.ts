@@ -31,7 +31,7 @@ const actions: ActionTree<UserState, RootState> = {
             }
           })
           if(shopifyConfigIdResp.status === 200 && !hasError(shopifyConfigIdResp) && shopifyConfigIdResp.data?.docs){
-            store.commit("shop/shop/CONFIG_ID_UPDATED", shopifyConfigIdResp.data.docs[0].shopifyConfigId)
+            commit(shopTypes.SHOP_CONFIG_ID_UPDATED, shopifyConfigIdResp.data.docs[0].shopifyConfigId)
             commit(types.USER_TOKEN_CHANGED, { newToken: resp.data.token })
             await dispatch('getProfile')
             return resp.data;
