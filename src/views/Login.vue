@@ -80,7 +80,7 @@ export default defineComponent({
           this.username = ''
           this.password = ''
           await this.store.dispatch('shop/getStores');
-          this.store.dispatch('order/getDraftOrder', {id: this.$route.redirectedFrom?.query.id, shopifyConfigId: this.shopifyConfig });
+          this.store.dispatch('order/getDraftOrder', this.$route.redirectedFrom?.query.id);
           this.$router.push('/order-detail');
         }
       })
