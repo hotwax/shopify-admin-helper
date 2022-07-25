@@ -1,4 +1,3 @@
-import { getShopifyConfigId } from '@/services'
 import { UserService } from '@/services/UserService'
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
@@ -14,32 +13,49 @@ const actions: ActionTree<UserState, RootState> = {
       const resp = await UserService.login(username, password)
       if (resp.status === 200 && resp.data) {
         if (resp.data.token) {
-          const shop = this.state.shop.shop;
-          const shopifyConfigIdResp = await getShopifyConfigId({
+          const stores = await store.dispatch('shop/getStores', {
             data: {
-              'inputFields': {
-                'apiUrl': `https://${shop}/`
-              },
-              "entityName": "ShopifyConfig",
-              "noConditionFind": "Y",
-              "fieldList": ['shopifyConfigId']
+              //Increased the viewSize as we have not implemented infinite scroll, will use the default when UI is updated.
+              "viewSize": 50
             },
             headers: {
               Authorization:  'Bearer ' + resp.data.token,
               'Content-Type': 'application/json'
             }
           })
-          if(shopifyConfigIdResp.status === 200 && !hasError(shopifyConfigIdResp) && shopifyConfigIdResp.data?.docs){
-            store.commit('shop/shop/CONFIG_ID_UPDATED', shopifyConfigIdResp.data.docs[0].shopifyConfigId)
-            commit(types.USER_TOKEN_CHANGED, { newToken: resp.data.token })
-            await dispatch('getProfile')
-            return resp.data;
+          if(stores.length){
+            const shop = this.state.shop.shop;
+            const shopifyConfigId = await store.dispatch('shop/getShopifyConfigId', {
+              data: {
+                'inputFields': {
+                  'apiUrl': `https://${shop}/`
+                },
+                "entityName": "ShopifyConfig",
+                "noConditionFind": "Y",
+                "fieldList": ['shopifyConfigId']
+              },
+              headers: {
+                Authorization:  'Bearer ' + resp.data.token,
+                'Content-Type': 'application/json'
+              }
+            })
+          
+            if(shopifyConfigId){
+              commit(types.USER_TOKEN_CHANGED, { newToken: resp.data.token })
+              await dispatch('getProfile')
+              return resp.data;
+            } else {
+              const shopifyConfigIdError = "Shopify Configuration missing. You can not login."
+              showToast(translate(shopifyConfigIdError));
+              console.error("error", shopifyConfigIdError);
+              return Promise.reject(new Error(shopifyConfigIdError));
+            }
           } else {
-            const shopifyConfigIdError = "Shopify Configuration missing. You can not login."
-            showToast(translate(shopifyConfigIdError));
-            console.error("error", shopifyConfigIdError);
-            return Promise.reject(new Error(shopifyConfigIdError));
-          }
+            const storesError = "Stores missing. You can not login."
+            showToast(translate(storesError));
+            console.error("error", storesError);
+            return Promise.reject(new Error(storesError));
+          }  
         } else if (hasError(resp)) {
           showToast(translate('Sorry, your username or password is incorrect. Please try again.'));
           console.error("error", resp.data._ERROR_MESSAGE_);

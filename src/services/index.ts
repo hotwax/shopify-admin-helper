@@ -9,11 +9,14 @@ const generateAccessToken = async (config: any): Promise <any>  => {
   });
 }
 
-const getStores = async (payload: any): Promise <any> => {
-  return api({
+const getStores = async (config: any): Promise <any> => {
+  let baseURL = store.getters['user/getInstanceUrl'];
+  baseURL = baseURL && baseURL.startsWith('http') ? baseURL : `https://${baseURL}.hotwax.io/api/`;
+  return client({
     url: "storeLookup",
     method: 'post',
-    data: payload
+    baseURL: baseURL,
+    ...config
   })
 }
 
