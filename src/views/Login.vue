@@ -36,6 +36,8 @@ import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import { mapGetters } from "vuex";
 import Logo from '@/components/Logo.vue';
+import { showToast } from "@/utils";
+import { translate } from "@/i18n";
 
 export default defineComponent({
   name: "Login",
@@ -57,24 +59,29 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      currentInstanceUrl: 'user/getInstanceUrl'
+      currentInstanceUrl: 'user/getInstanceUrl',
+      shop: 'shop/getShop',
+      shopifyConfig: 'shop/getShopConfigId'
     })
   },
   mounted() {
-    const shop = this.$route.query.shop as any;
+    this.store.dispatch('shop/setShop', this.$route.redirectedFrom?.query.shop);
+    const shop = this.shop as any;
     const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
-    this.instanceUrl = shopConfig[shop].oms;
+    this.instanceUrl = shopConfig[shop]?.oms;
   },
   methods: {
     login: function () {
       this.store.dispatch("user/setUserInstanceUrl", this.instanceUrl.trim())
       
       const { username, password } = this;
-      this.store.dispatch("user/login", { username, password }).then((data: any) => {
+      this.store.dispatch("user/login", { username, password }).then( async (data: any) => {
         if (data.token) {
           this.username = ''
           this.password = ''
-          this.$router.push('/')
+          await this.store.dispatch('shop/getStores');
+          this.store.dispatch('order/getDraftOrder', {id: this.$route.redirectedFrom?.query.id, shopifyConfigId: this.shopifyConfig });
+          this.$router.push('/order-detail');
         }
       })
     }

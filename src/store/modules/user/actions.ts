@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { getShopifyConfigId, getStores } from '@/services'
+=======
+import { getShopifyConfigId } from '@/services'
+>>>>>>> 579c1d4921bb90e7b9be8745dde00e50ed2a678d
 import { UserService } from '@/services/UserService'
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
@@ -6,6 +10,7 @@ import UserState from './UserState'
 import { hasError, showToast } from '@/utils'
 import * as types from './mutation-types'
 import { translate } from '@/i18n'
+import store from '@/store'
 
 const actions: ActionTree<UserState, RootState> = {
   async login ({ commit, dispatch }, { username, password }) {
@@ -73,10 +78,11 @@ const actions: ActionTree<UserState, RootState> = {
       console.error("error", err);
       return Promise.reject(new Error(err))
     }
-    // return resp
   },
   async logout ({ commit }) {
     // TODO add any other tasks if need
+    store.commit('shop/shop/CONFIG_ID_UPDATED', "");
+    store.commit('shop/shop/STORES_UPDATED', {});
     commit(types.USER_END_SESSION)
   },
   

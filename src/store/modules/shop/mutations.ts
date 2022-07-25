@@ -11,6 +11,12 @@ const mutations: MutationTree <ShopState> = {
   },
   [types.SHOP_TOKEN_UPDATED] (state, payload) {
     state.token = payload.token;
+  },
+  [types.SHOP_CONFIG_ID_UPDATED] (state, payload) {
+    state.configId = payload;
+  },
+  [types.SHOP_STORES_UPDATED] (state, payload) {
+    state.stores = payload
   }
 }
 export default mutations;
