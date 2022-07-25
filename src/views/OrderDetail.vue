@@ -150,7 +150,7 @@ export default defineComponent({
     },
     isPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
-      return property ?  property :  " ";
+      return !!property;
     },
     timeFromNow (time: string) {
       if (time) {
