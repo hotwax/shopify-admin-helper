@@ -150,7 +150,7 @@ export default defineComponent({
     },
     isPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
-      return !!property;
+      return property ? property : "" ;
     },
     timeFromNow (time: string) {
       if (time) {
@@ -159,11 +159,11 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(item: any, label: string){
-      if(this.isPreorderBackorderItem(item)){
-        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE")["PROMISE_DATE"] : "";
-      }
       const product = this.getPreorderItemAvailability(item.sku);
       if(product.label === label){
+        if(this.isPreorderBackorderItem(item)){
+          return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE").value : "";
+        }
         return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
     }
