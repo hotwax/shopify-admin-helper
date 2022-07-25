@@ -140,7 +140,11 @@ export default defineComponent({
     markPreorderBackorderItem (item: any, event: any) {
       const product = this.getPreorderItemAvailability(item.sku)
       if(product){
-        item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
+        if(product.estimatedDeliveryDate){
+          item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
+        } else {
+          item.properties.push({ name: 'Note', value: event.detail.value });
+        }
         this.store.dispatch('order/updateLineItems', this.order);
       }
     },
