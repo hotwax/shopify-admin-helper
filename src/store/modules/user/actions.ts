@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { getShopifyConfigId, getStores } from '@/services'
-=======
-import { getShopifyConfigId } from '@/services'
->>>>>>> 579c1d4921bb90e7b9be8745dde00e50ed2a678d
 import { UserService } from '@/services/UserService'
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
