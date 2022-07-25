@@ -14,7 +14,7 @@ const actions: ActionTree<UserState, RootState> = {
       const resp = await UserService.login(username, password)
       if (resp.status === 200 && resp.data) {
         if (resp.data.token) {
-          const storesResp = await getStores({
+          const stores = await store.dispatch('shop/getStores', {
             data: {
               //Increased the viewSize as we have not implemented infinite scroll, will use the default when UI is updated.
               "viewSize": 50
@@ -24,10 +24,9 @@ const actions: ActionTree<UserState, RootState> = {
               'Content-Type': 'application/json'
             }
           })
-          if(storesResp.status === 200 && !hasError(storesResp) && storesResp.data.response?.docs){
-            store.commit('shop/shop/STORES_UPDATED', storesResp.data.response.docs)
+          if(stores){
             const shop = this.state.shop.shop;
-            const shopifyConfigIdResp = await getShopifyConfigId({
+            const shopifyConfigId = await store.dispatch('shop/getShopifyConfigId', {
               data: {
                 'inputFields': {
                   'apiUrl': `https://${shop}/`
@@ -42,8 +41,7 @@ const actions: ActionTree<UserState, RootState> = {
               }
             })
           
-            if(shopifyConfigIdResp.status === 200 && !hasError(shopifyConfigIdResp) && shopifyConfigIdResp.data?.docs){
-              store.commit('shop/shop/CONFIG_ID_UPDATED', shopifyConfigIdResp.data.docs[0].shopifyConfigId)
+            if(shopifyConfigId){
               commit(types.USER_TOKEN_CHANGED, { newToken: resp.data.token })
               await dispatch('getProfile')
               return resp.data;

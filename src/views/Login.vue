@@ -79,7 +79,6 @@ export default defineComponent({
         if (data.token) {
           this.username = ''
           this.password = ''
-          await this.store.dispatch('shop/getStores');
           this.store.dispatch('order/getDraftOrder', this.$route.redirectedFrom?.query.id);
           this.$router.push('/order-detail');
         }
