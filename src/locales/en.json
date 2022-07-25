@@ -12,5 +12,12 @@
   "Username": "Username",
   "Password": "Password",
   "Login": "Login",
-  "OMS": "OMS"
+  "OMS": "OMS",
+  "Order": "Order",
+  "Order Details": "Order Details",
+  "Order Updated successfully.": "Order Updated successfully.",
+  "Save changes to order": "Save changes to order",
+  "Stores missing. You can not login.": "Stores missing. You can not login.",
+  "No shipping estimates": "No shipping estimates",
+  "None": "None"
 }
