@@ -23,7 +23,7 @@ const actions: ActionTree<UserState, RootState> = {
               'Content-Type': 'application/json'
             }
           })
-          if(stores){
+          if(stores.length){
             const shop = this.state.shop.shop;
             const shopifyConfigId = await store.dispatch('shop/getShopifyConfigId', {
               data: {

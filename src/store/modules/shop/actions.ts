@@ -16,16 +16,16 @@ const actions: ActionTree<ShopState, RootState> = {
     let resp;
     try {
       resp = await getStores(payload);
-      if(resp.status === 200 && !hasError(resp) && resp.data.response?.docs){
+      if(resp.status === 200 && !hasError(resp) && resp.data.response?.docs?.length > 0){
         commit(types.SHOP_STORES_UPDATED, resp.data.response.docs);
         return resp.data.response.docs;
       } else {
-        return  
+        return  [];
       }
       
     } catch(err){
       console.error(err);
-      return 
+      return [];
     }
   },
   async getShopifyConfigId({commit}, payload){
@@ -37,11 +37,11 @@ const actions: ActionTree<ShopState, RootState> = {
         commit(types.SHOP_CONFIG_ID_UPDATED, shopifyConfigId);
         return shopifyConfigId;
       } else {
-        return 
+        return "";
       }
     } catch(err) {
       console.error(err);
-      return
+      return "";
     }
   }
 }
