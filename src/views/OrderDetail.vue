@@ -36,7 +36,7 @@
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.sku, shopifyStores[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
-            <ion-radio-group :value="isPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
+            <ion-radio-group :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
               <ion-item class="border-top">
                 <ion-radio :disabled="isPreorderOrBackorderProduct(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
@@ -148,9 +148,9 @@ export default defineComponent({
     updateDraftOrder () {
       this.store.dispatch('order/updateDraftOrder', this.order);
     },
-    isPreorderBackorderItem (item: any) {
+    checkPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
-      return !!property;
+      return property ? property : "" ;
     },
     timeFromNow (time: string) {
       if (time) {
@@ -159,8 +159,12 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(item: any, label: string){
-      if(this.isPreorderBackorderItem(item)){
-        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE")["PROMISE_DATE"] : "";
+      const labelMapping = {
+        "BACKORDER": "Back Order",
+        "PRE-ORDER": "Pre Order",
+      } as any
+      if(this.checkPreorderBackorderItem(item) === labelMapping[label]) {
+        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE").value : "";
       }
       const product = this.getPreorderItemAvailability(item.sku);
       if(product.label === label){
