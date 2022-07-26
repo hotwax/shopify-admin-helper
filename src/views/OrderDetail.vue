@@ -159,11 +159,15 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(item: any, label: string){
+      const labelMapping = {
+        "BACKORDER": "Back Order",
+        "PRE-ORDER": "Pre Order",
+      } as any
+      if(this.checkPreorderBackorderItem(item) === labelMapping[label]) {
+        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE").value : "";
+      }
       const product = this.getPreorderItemAvailability(item.sku);
       if(product.label === label){
-        if(this.checkPreorderBackorderItem(item)){
-          return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE").value : "";
-        }
         return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
     }
