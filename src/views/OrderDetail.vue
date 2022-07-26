@@ -85,6 +85,8 @@ import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { DateTime } from 'luxon';
+import { Redirect } from "@shopify/app-bridge/actions";
+import createApp from "@shopify/app-bridge";
 
 export default defineComponent({
   name: 'Home',
@@ -110,7 +112,8 @@ export default defineComponent({
       order: 'order/getDraftOrder',
       shopifyStores: 'shop/getStores',
       getProductStock: 'stock/getProductStock',
-      getPreorderItemAvailability: 'stock/getPreorderItemAvailability'
+      getPreorderItemAvailability: 'stock/getPreorderItemAvailability',
+      routeParams: 'shop/getRouteParams'
     })
   },
 
@@ -147,6 +150,11 @@ export default defineComponent({
     },
     updateDraftOrder () {
       this.store.dispatch('order/updateDraftOrder', this.order);
+      const app = createApp({
+          apiKey: process.env.VUE_APP_SHOPIFY_API_KEY,
+          host: this.routeParams.host
+        });
+        Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `draft_order/${this.routeParams.id}`);
     },
     checkPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
