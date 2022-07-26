@@ -2,7 +2,6 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
         <ion-title>{{ $t("Order Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -71,7 +70,6 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
-  IonBackButton,
   IonRadio,
   IonRadioGroup
 } from "@ionic/vue";
@@ -103,7 +101,6 @@ export default defineComponent({
     IonPage,
     IonTitle,
     IonToolbar,
-    IonBackButton,
     IonRadio,
     IonRadioGroup
   },
@@ -149,9 +146,10 @@ export default defineComponent({
       this.store.dispatch('order/updateLineItems', this.order);
     },
     updateDraftOrder () {
+      const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
       this.store.dispatch('order/updateDraftOrder', this.order);
       const app = createApp({
-          apiKey: process.env.VUE_APP_SHOPIFY_API_KEY,
+          apiKey: shopConfig[this.routeParams.shop].apiKey,
           host: this.routeParams.host
         });
         Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `draft_order/${this.routeParams.id}`);
