@@ -10,6 +10,7 @@ import OrderDetail from '@/views/OrderDetail.vue'
 const authGuard = (to: any, from: any, next: any) => {
   const existingShop = store.getters['shop/getShop']
   const currentShop = to.query.shop;
+  //The app is used for multiple shopes. This snippet of code handles the case when existing shop is different from the one we access from URL.
   const isShopMismatch = from.path === "/" && !(from.path === "/" && !existingShop || (existingShop && currentShop === existingShop));
   // TODO Find a better way
   if (from.path === "/" && currentShop) {

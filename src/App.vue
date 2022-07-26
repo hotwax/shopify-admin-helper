@@ -39,8 +39,9 @@ export default defineComponent({
     }
   },
   created() {
-    const payload = this.$route.query ? this.$route.query : this.$route.redirectedFrom?.query;
-    this.store.dispatch('shop/setRouteParams', payload);
+    //Stored route params in state as we are unable to access them when token expires and gets redirected to login page.
+    const routeParams = this.$route.query ? this.$route.query : this.$route.redirectedFrom?.query;
+    this.store.dispatch('shop/setRouteParams', routeParams);
   },
   mounted() {
     emitter.on('presentLoader', this.presentLoader);
