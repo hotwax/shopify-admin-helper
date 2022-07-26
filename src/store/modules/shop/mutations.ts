@@ -17,6 +17,9 @@ const mutations: MutationTree <ShopState> = {
   },
   [types.SHOP_STORES_UPDATED] (state, payload) {
     state.stores = payload
+  },
+  [types.SHOP_ROUTE_PARAMS_UPDATED] (state, payload) {
+    state.routeParams = payload;
   }
 }
 export default mutations;
