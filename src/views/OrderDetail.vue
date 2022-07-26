@@ -152,7 +152,7 @@ export default defineComponent({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
           host: this.routeParams.host
         });
-        Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `draft_order/${this.routeParams.id}`);
+        Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `/draft_order/${this.routeParams.id}`);
     },
     checkPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
