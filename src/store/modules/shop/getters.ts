@@ -14,6 +14,9 @@ const getters: GetterTree <ShopState, RootState> = {
   },
   getStores (state) {
     return state.stores;
+  },
+  getRouteParams (state) {
+    return state.routeParams;
   }
 }
 export default getters;

@@ -43,6 +43,9 @@ const actions: ActionTree<ShopState, RootState> = {
       console.error(err);
       return "";
     }
+  },
+  setRouteParams({commit}, payload){
+    commit(types.SHOP_ROUTE_PARAMS_UPDATED, payload)
   }
 }
 export default actions;
