@@ -3,4 +3,5 @@ export default interface ShopState {
   shop: string;
   configId: string;
   stores: any;
+  routeParams: any;
 }

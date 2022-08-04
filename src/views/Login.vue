@@ -61,11 +61,11 @@ export default defineComponent({
     ...mapGetters({
       currentInstanceUrl: 'user/getInstanceUrl',
       shop: 'shop/getShop',
-      shopifyConfig: 'shop/getShopConfigId'
+      shopifyConfig: 'shop/getShopConfigId',
+      routeParams: 'shop/getRouteParams'
     })
   },
   mounted() {
-    this.store.dispatch('shop/setShop', this.$route.redirectedFrom?.query.shop);
     const shop = this.shop as any;
     const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
     this.instanceUrl = shopConfig[shop]?.oms;
@@ -79,8 +79,7 @@ export default defineComponent({
         if (data.token) {
           this.username = ''
           this.password = ''
-          await this.store.dispatch('shop/getStores');
-          this.store.dispatch('order/getDraftOrder', this.$route.redirectedFrom?.query.id);
+          this.store.dispatch('order/getDraftOrder', this.routeParams.id);
           this.$router.push('/order-detail');
         }
       })

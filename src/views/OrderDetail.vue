@@ -2,7 +2,6 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
         <ion-title>{{ $t("Order Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -36,7 +35,7 @@
               <ion-label>{{ $t("Pickup") }}</ion-label>
               <ion-note slot="end">{{ getProductStock(item.sku, shopifyStores[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
             </ion-item>
-            <ion-radio-group :value="isPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
+            <ion-radio-group :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
               <ion-item class="border-top">
                 <ion-radio :disabled="isPreorderOrBackorderProduct(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
@@ -45,7 +44,7 @@
               <ion-item class="border-top">
                 <ion-radio :disabled="isPreorderOrBackorderProduct(item, 'BACKORDER')" slot="start" value="Back Order" />
                 <ion-label >{{ $t("Back Order") }}</ion-label>
-                <ion-note slot="end" :color="getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "PRE-ORDER") : $t("No shipping estimates") }}</ion-note>
+                <ion-note slot="end" :color="getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
           </ion-card>
@@ -71,7 +70,6 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
-  IonBackButton,
   IonRadio,
   IonRadioGroup
 } from "@ionic/vue";
@@ -85,6 +83,8 @@ import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { DateTime } from 'luxon';
+import { Redirect } from "@shopify/app-bridge/actions";
+import createApp from "@shopify/app-bridge";
 
 export default defineComponent({
   name: 'Home',
@@ -101,7 +101,6 @@ export default defineComponent({
     IonPage,
     IonTitle,
     IonToolbar,
-    IonBackButton,
     IonRadio,
     IonRadioGroup
   },
@@ -110,7 +109,8 @@ export default defineComponent({
       order: 'order/getDraftOrder',
       shopifyStores: 'shop/getStores',
       getProductStock: 'stock/getProductStock',
-      getPreorderItemAvailability: 'stock/getPreorderItemAvailability'
+      getPreorderItemAvailability: 'stock/getPreorderItemAvailability',
+      routeParams: 'shop/getRouteParams'
     })
   },
 
@@ -139,17 +139,24 @@ export default defineComponent({
     },
     markPreorderBackorderItem (item: any, event: any) {
       const product = this.getPreorderItemAvailability(item.sku)
-      if(product){
-        item.properties.push({ name: 'Note', value: event.detail.value }, { name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
-        this.store.dispatch('order/updateLineItems', this.order);
+      item.properties.push({ name: 'Note', value: event.detail.value });
+      if(product.estimatedDeliveryDate){
+        item.properties.push({ name: 'PROMISE_DATE', value: DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy") })
       }
+      this.store.dispatch('order/updateLineItems', this.order);
     },
-    updateDraftOrder () {
-      this.store.dispatch('order/updateDraftOrder', this.order);
+    async updateDraftOrder () {
+      const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
+      await this.store.dispatch('order/updateDraftOrder', this.order);
+      const app = createApp({
+          apiKey: shopConfig[this.routeParams.shop].apiKey,
+          host: this.routeParams.host
+        });
+        Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `/draft_orders/${this.routeParams.id}`);
     },
-    isPreorderBackorderItem (item: any) {
+    checkPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
-      return property ?  property :  " ";
+      return property ? property : "" ;
     },
     timeFromNow (time: string) {
       if (time) {
@@ -158,8 +165,12 @@ export default defineComponent({
       }
     },
     getEstimatedDeliveryDate(item: any, label: string){
-      if(this.isPreorderBackorderItem(item)){
-        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE")["PROMISE_DATE"] : "";
+      const labelMapping = {
+        "BACKORDER": "Back Order",
+        "PRE-ORDER": "Pre Order",
+      } as any
+      if(this.checkPreorderBackorderItem(item) === labelMapping[label]) {
+        return item.properties.find((property: any) => property.name === "PROMISE_DATE") ? item.properties.find((property: any) => property.name === "PROMISE_DATE").value : "";
       }
       const product = this.getPreorderItemAvailability(item.sku);
       if(product.label === label){

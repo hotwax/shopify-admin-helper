@@ -32,6 +32,9 @@ axios.interceptors.response.use(function (response) {
         const { status } = error.response;
         if (status === StatusCodes.UNAUTHORIZED) {
           // TODO Need to handle the case of status being unauthorized
+          //Handled the case when token expires.
+          store.dispatch("user/logout");
+          router.push('/login')
         }
     }
     // Any status codes that falls outside the range of 2xx cause this function to trigger
