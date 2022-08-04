@@ -145,9 +145,9 @@ export default defineComponent({
       }
       this.store.dispatch('order/updateLineItems', this.order);
     },
-    updateDraftOrder () {
+    async updateDraftOrder () {
       const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
-      this.store.dispatch('order/updateDraftOrder', this.order);
+      await this.store.dispatch('order/updateDraftOrder', this.order);
       const app = createApp({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
           host: this.routeParams.host
