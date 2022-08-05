@@ -129,11 +129,12 @@ export default defineComponent({
     },
     markBopisItem (item: any, event: any) {
       if(this.isBopisItem(item)){
-        item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Pickup Store'))
+        // Need to remove the 'Pickup Store' check, currently kept it for backward compatibility.
+        item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
       } else {
         const store = this.shopifyStores[0];
         const address = [store.storeName, store.address1, store.city].filter((value: any) => value).join(", ");
-        item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Pickup Store', value: address })
+        item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Store Pickup', value: address })
       }
       this.store.dispatch('order/updateLineItems', this.order)
     },
