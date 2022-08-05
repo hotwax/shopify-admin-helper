@@ -42,14 +42,16 @@ const actions: ActionTree<OrderState, RootState> = {
       resp = await OrderService.updateDraftOrder(params);
       if (resp.status === 200 && !hasError(resp)) {
         showToast(translate("Order Updated successfully."));
-        await dispatch('getDraftOrder', order.id);
+        return resp;
       } else {
         console.error(resp);
         showToast(translate("Something went wrong"));
+        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       showToast(translate("Something went wrong"));
+      return Promise.reject(new Error(err))
     }
   },
   updateLineItems({ commit }, order){
