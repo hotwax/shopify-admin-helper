@@ -129,6 +129,7 @@ export default defineComponent({
     },
     markBopisItem (item: any, event: any) {
       if(this.isBopisItem(item)){
+        // Kept Pickup Store check for orders that have been already marked BOPIS. Will remove after sometime.
         item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
       } else {
         const store = this.shopifyStores[0];
