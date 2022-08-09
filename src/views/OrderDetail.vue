@@ -148,12 +148,13 @@ export default defineComponent({
     },
     async updateDraftOrder () {
       const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
-      await this.store.dispatch('order/updateDraftOrder', this.order);
-      const app = createApp({
+      await this.store.dispatch('order/updateDraftOrder', this.order).then(() => {
+        const app = createApp({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
           host: this.routeParams.host
         });
         Redirect.create(app).dispatch(Redirect.Action.ADMIN_PATH, `/draft_orders/${this.routeParams.id}`);
+      })
     },
     checkPreorderBackorderItem (item: any) {
       const property = item.properties?.find((property: any) => property.name === 'Note')?.value;
