@@ -80,7 +80,7 @@ export default defineComponent({
           this.username = ''
           this.password = ''
           this.store.dispatch('order/getDraftOrder', this.routeParams.id);
-          this.$router.push('/order-detail');
+          this.$router.replace('/order-detail');
         }
       })
     }
