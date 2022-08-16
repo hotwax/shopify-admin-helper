@@ -84,13 +84,14 @@ Always define the type of issue:
 * Feature request
 
 While writing issues, please be as specific as possible. All requests regarding support with implementation or application setup should be sent to.
+
 # UI / UX Resources
 You may find some useful resources for improving the UI / UX of the app <a href="https://www.figma.com/file/bVPRRw282CqGKMdbz7dciH/HC-Ionic-design-system?node-id=15226%3A38906" target="_blank">here</a>.
 
 # Join the community on Discord
 If you have any questions or ideas feel free to join our <a href="https://discord.gg/SwpJnpdyg3" target="_blank">Discord channel</a>
-# The license
 
-Shopify admin helper app is completely free and released under the Apache v2.0 License. Check <a href="https://github.com/hotwax/shopify-admin-helper/blob/main/LICENSE" target="_blank">LICENSE</a> for more details.
+# The license
+Shopify admin helper app is completely free and released under the Apache v2.0 License. Check <a href="https://github.com/hotwax/shopify-bopis/blob/main/LICENSE" target="_blank">LICENSE</a> for more details.
 
 
