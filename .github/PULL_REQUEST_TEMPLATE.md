@@ -17,4 +17,4 @@ Closes #
 ### Contribution and Currently Important Rules Acceptance
 <!-- Please get familiar with following info -->
 
-- [ ] I read and followed [contribution rules](https://github.com/DivanteLtd/vsf-capybara/blob/master/CONTRIBUTING.md)
+- [ ] I read and followed [contribution rules](https://github.com/hotwax/shopify-admin-helper/blob/master/CONTRIBUTING.md)
