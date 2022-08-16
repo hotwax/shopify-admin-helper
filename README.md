@@ -1,3 +1,6 @@
+# shopify-admin-helper
+shopify-admin-helper
+
 # Prerequisite
 Ionic CLI - If you don't have the ionic CLI installed refer [official documentation](https://ionicframework.com/docs/intro/cli) for the installation instructions.
 
