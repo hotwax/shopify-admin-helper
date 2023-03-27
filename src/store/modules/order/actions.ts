@@ -18,6 +18,10 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.response?.draft_order) {
         const order = resp.data.response.draft_order;
         const productSkus = order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
+        order.line_items.map((item: any) => {
+          item.isBopis = item.properties.some((property: any) => property.name === "Pickup Store");
+          item.isBopis ? item.deliveryMethodTypeId = 'STOREPICKUP' : item.deliveryMethodTypeId = 'STANDARD'
+        })
         this.dispatch('stock/checkInventoryByFacility', productSkus);
         this.dispatch('stock/checkPreorderItemAvailability', productSkus);
         commit(types.DRAFT_ORDER_UPDATED, order);

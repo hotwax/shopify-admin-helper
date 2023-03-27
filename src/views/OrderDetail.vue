@@ -31,11 +31,12 @@
               </ion-label>
             </ion-item>
             <ion-item>
-              <ion-checkbox :checked="isBopisItem(item)" slot="start" @ionChange="markBopisItem(item, $event)" />
-              <ion-label>{{ $t("Pickup") }}</ion-label>
-              <ion-note slot="end">{{ getProductStock(item.sku, shopifyStores[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
+              <ion-label>{{ $t('Delivery method') }}</ion-label>
+              <ion-select interface="popover" :value="item.deliveryMethodTypeId" @ionChange="updateDeliveryMethod($event, item)">
+                <ion-select-option v-for="method in deliveryMethods" :key="method.value" :value="method.value">{{ method.name }}</ion-select-option>
+              </ion-select>
             </ion-item>
-            <ion-radio-group :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
+            <ion-radio-group v-if="item.deliveryMethodTypeId !== 'STOREPICKUP'" :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
               <ion-item class="border-top">
                 <ion-radio :disabled="isPreorderOrBackorderProduct(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
@@ -47,6 +48,7 @@
                 <ion-note slot="end" :color="getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
+            <ion-button v-else @click="updatePickupLocation(item)" expand="block" fill="outline">{{ $t("Select pickup location")}}</ion-button>
           </ion-card>
         </main>
         <div class="text-center center-align">
@@ -60,7 +62,6 @@
 import {
   IonButton,
   IonCard,
-  IonCheckbox,
   IonContent,
   IonHeader,
   IonItem,
@@ -68,6 +69,8 @@ import {
   IonList,
   IonNote,
   IonPage,
+  IonSelect,
+  IonSelectOption,
   IonTitle,
   IonToolbar,
   IonRadio,
@@ -87,11 +90,10 @@ import { Redirect } from "@shopify/app-bridge/actions";
 import createApp from "@shopify/app-bridge";
 
 export default defineComponent({
-  name: 'Home',
+  name: 'OrderDetail',
   components: {
     IonButton,
     IonCard,
-    IonCheckbox,
     IonContent,
     IonHeader,
     IonItem,
@@ -99,10 +101,26 @@ export default defineComponent({
     IonList,
     IonNote,
     IonPage,
+    IonSelect,
+    IonSelectOption,
     IonTitle,
     IonToolbar,
     IonRadio,
     IonRadioGroup
+  },
+  data() {
+    return {
+      deliveryMethods: [
+        {
+          name: 'Store pickup',
+          value: 'STOREPICKUP'
+        },
+        {
+          name: 'Shipping',
+          value: 'STANDARD'
+        }
+      ]
+    }
   },
   computed: {
     ...mapGetters({
@@ -120,23 +138,19 @@ export default defineComponent({
     }
   },
   methods: {
-    isBopisItem(item: any){
-      return item.properties.some((property: any) => property.name === "Pickup Store");
-    },
-    isPreorderOrBackorderProduct(item: any, label: string){
-      const product = this.getPreorderItemAvailability(item.sku);  
-      return !(product.label === label);
-    },
-    markBopisItem (item: any, event: any) {
-      if(this.isBopisItem(item)){
-        // Need to remove the 'Pickup Store' check, currently kept it for backward compatibility.
-        item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
-      } else {
+    updateDeliveryMethod(event: any, item: any) {
+      item.deliveryMethodTypeId = event.detail.value;
+      item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
+      if (item.isBopis) {
         const store = this.shopifyStores[0];
         const address = [store.storeName, store.address1, store.city].filter((value: any) => value).join(", ");
         item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Store Pickup', value: address })
       }
       this.store.dispatch('order/updateLineItems', this.order)
+    },
+    isPreorderOrBackorderProduct(item: any, label: string){
+      const product = this.getPreorderItemAvailability(item.sku);  
+      return !(product.label === label);
     },
     markPreorderBackorderItem (item: any, event: any) {
       const product = this.getPreorderItemAvailability(item.sku)
