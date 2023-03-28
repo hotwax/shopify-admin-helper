@@ -48,7 +48,15 @@
                 <ion-note slot="end" :color="getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
-            <ion-button v-else @click="updatePickupLocation(item)" expand="block" fill="outline">{{ $t("Select pickup location")}}</ion-button>
+            <ion-button v-else-if="item.deliveryMethodTypeId === 'STOREPICKUP' && !item.selectedFacility" @click="updatePickupLocation(item)" expand="block" fill="outline">{{ $t("Select pickup location")}}</ion-button>
+            <ion-item v-else>
+              <ion-list>
+                <ion-label>{{ item.selectedFacility.facilityName }} </ion-label>
+                <ion-label color="dark">{{ item.selectedFacility.address1 }} </ion-label>
+                <ion-label color="dark">{{ item.selectedFacility.city }} {{ item.selectedFacility.stateCode }} {{ item.selectedFacility.postalCode }}</ion-label>
+              </ion-list>
+              <ion-button slot="end" @click="updatePickupLocation(item)" color="medium" fill="outline">{{ $t("Change Store")}}</ion-button>
+            </ion-item>
           </ion-card>
         </main>
         <div class="text-center center-align">
@@ -74,7 +82,8 @@ import {
   IonTitle,
   IonToolbar,
   IonRadio,
-  IonRadioGroup
+  IonRadioGroup,
+  modalController
 } from "@ionic/vue";
 import {
   sendOutline,
@@ -88,6 +97,7 @@ import { useRouter } from 'vue-router';
 import { DateTime } from 'luxon';
 import { Redirect } from "@shopify/app-bridge/actions";
 import createApp from "@shopify/app-bridge";
+import PickupLocationModal from "./PickupLocationModal.vue";
 
 export default defineComponent({
   name: 'OrderDetail',
@@ -143,7 +153,7 @@ export default defineComponent({
       item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
       if (item.isBopis) {
         const store = this.shopifyStores[0];
-        const address = [store.storeName, store.address1, store.city].filter((value: any) => value).join(", ");
+        const address = [store.storeName, store.address1, store.city].slice().join(", ");
         item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Store Pickup', value: address })
       }
       this.store.dispatch('order/updateLineItems', this.order)
@@ -192,6 +202,26 @@ export default defineComponent({
       if(product.label === label){
         return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
+    },
+    async updatePickupLocation(item: any) {
+      const modal = await modalController
+        .create({
+          component: PickupLocationModal,
+          // Adding backdropDismiss as false because on dismissing the modal through backdrop,
+          // backrop.role returns 'backdrop' giving unexpected result
+          backdropDismiss: false,
+          componentProps: { item }
+        })
+      modal.onDidDismiss().then((result) => {
+        if (result.role) {
+          // role will have the passed data
+          item.selectedFacility = result.role
+          const address = [item.selectedFacility.storeName, item.selectedFacility.address1, item.selectedFacility.city].slice().join(", ");
+          item.properties.push({ name: '_pickupstore', value: item.selectedFacility.storeCode }, { name: 'Store Pickup', value: address })
+          this.store.dispatch('order/updateLineItems', this.order);
+        }
+      });
+      return modal.present();
     }
   },
   setup() {
