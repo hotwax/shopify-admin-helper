@@ -29,6 +29,9 @@
                 <p>{{ item.variant_title }}</p>
                 <p class="ion-text-wrap">{{ $t("SKU") }}: {{ item.sku }}</p>
               </ion-label>
+              <ion-button :disabled="JSON.stringify(order) == JSON.stringify(initialOrder)" fill="clear" color="medium" slot="end" @click="undo(item)">
+                <ion-icon slot="icon-only" :icon="arrowUndoOutline" />
+              </ion-button>            
             </ion-item>
             <ion-item>
               <ion-label>{{ $t('Delivery method') }}</ion-label>
@@ -53,14 +56,14 @@
               <ion-list>
                 <ion-label>{{ item.selectedFacility.facilityName }} </ion-label>
                 <ion-label color="dark">{{ item.selectedFacility.address1 }} </ion-label>
-                <ion-label color="dark">{{ item.selectedFacility.city }} {{ item.selectedFacility.stateCode }} {{ item.selectedFacility.postalCode }}</ion-label>
+                <ion-label color="dark">{{ item.selectedFacility.city }}</ion-label>
               </ion-list>
               <ion-button slot="end" @click="updatePickupLocation(item)" color="medium" fill="outline">{{ $t("Change Store")}}</ion-button>
             </ion-item>
           </ion-card>
         </main>
         <div class="text-center center-align">
-          <ion-button @click="updateDraftOrder()">{{ $t("Save changes to order") }}</ion-button>
+          <ion-button :disabled="JSON.stringify(order) == JSON.stringify(initialOrder)" @click="save()">{{ $t("Save changes to order") }}</ion-button>
         </div>
       </div>
     </ion-content>
@@ -68,6 +71,7 @@
 </template>
 <script lang="ts">
 import {
+  alertController,
   IonButton,
   IonCard,
   IonContent,
@@ -85,12 +89,7 @@ import {
   IonRadioGroup,
   modalController
 } from "@ionic/vue";
-import {
-  sendOutline,
-  swapVerticalOutline,
-  callOutline,
-  mailOutline,
-} from "ionicons/icons";
+import { arrowUndoOutline } from "ionicons/icons";
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -98,6 +97,8 @@ import { DateTime } from 'luxon';
 import { Redirect } from "@shopify/app-bridge/actions";
 import createApp from "@shopify/app-bridge";
 import PickupLocationModal from "./PickupLocationModal.vue";
+import { translate } from "@/i18n";
+import { showToast } from "@/utils";
 
 export default defineComponent({
   name: 'OrderDetail',
@@ -120,6 +121,7 @@ export default defineComponent({
   },
   data() {
     return {
+      initialOrder: {} as any,
       deliveryMethods: [
         {
           name: 'Store pickup',
@@ -136,7 +138,6 @@ export default defineComponent({
     ...mapGetters({
       order: 'order/getDraftOrder',
       shopifyStores: 'shop/getStores',
-      getProductStock: 'stock/getProductStock',
       getPreorderItemAvailability: 'stock/getPreorderItemAvailability',
       routeParams: 'shop/getRouteParams'
     })
@@ -146,6 +147,7 @@ export default defineComponent({
     if (this.$route.query.id) {
       await this.store.dispatch('order/getDraftOrder', this.$route.query.id);
     }
+    this.initialOrder = JSON.parse(JSON.stringify(this.order));
   },
   methods: {
     updateDeliveryMethod(event: any, item: any) {
@@ -222,6 +224,50 @@ export default defineComponent({
         }
       });
       return modal.present();
+    },
+    async save() {
+      const message = this.$t("Are you sure you want to save the changes?");
+      const alert = await alertController.create({
+        header: this.$t("Save changes"),
+        message,
+        buttons: [
+          {
+            text: this.$t("Cancel"),
+          },
+          {
+            text: this.$t("Confirm"),
+            handler: () => {
+              this.updateDraftOrder()
+            }
+          }
+        ],
+      });
+      return alert.present();
+    },
+    async undo(item: any) {
+      const header = this.$t('Clear edits')
+      const message = this.$t('Are you sure you want to undo the changes you’ve made to this order item?')
+
+      const alert = await alertController
+        .create({
+          header: header,
+          message: message,
+          buttons: [{
+            text: this.$t('Cancel'),
+            role: 'cancel'
+          },{
+            text: this.$t('Clear'),
+            handler: async () => {
+              // finding the initial line_item (without edits) and updating it in this.order
+              const initialItem = this.initialOrder.line_items.find((lineItem: any) => lineItem.id === item.id)
+              const index = this.order.line_items.findIndex((lineItem: any) => lineItem.id === item.id)
+              this.order.line_items.splice(index, 1, initialItem)
+              this.store.dispatch('order/updateLineItems', this.order)
+              showToast(translate('Previous edits cleared successfully'))
+            }
+          }]
+        });
+      return alert.present();
     }
   },
   setup() {
@@ -229,10 +275,7 @@ export default defineComponent({
     const router = useRouter();
 
     return {
-      sendOutline,
-      swapVerticalOutline,
-      callOutline,
-      mailOutline,
+      arrowUndoOutline,
       router,
       store
     };

@@ -37,7 +37,7 @@
     </ion-list>
     <!-- Only show select button if there are stores to select from -->
     <div v-if="nearbyStores.length" class="ion-text-center">
-      <ion-button @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
+      <ion-button :disabled="Object.keys(selectedFacility).length == 0 || selectedFacility.facilityId == item.properties.find((property: any) => property.name == '_pickupstore')?.value" @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
     </div>
   </ion-content>
 </template>
@@ -92,7 +92,7 @@ export default defineComponent({
       queryString: '',
       nearbyStores: [] as any,
       facilityId: '',
-      selectedFacility: {},
+      selectedFacility: {} as any
     }
   },
   props: ["item"],

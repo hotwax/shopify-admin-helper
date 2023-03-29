@@ -5,7 +5,6 @@ import * as types from './mutation-types'
 import { OrderService } from '@/services/OrderService'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
-import { DateTime } from 'luxon'
 
 const actions: ActionTree<OrderState, RootState> = {
   async getDraftOrder ({ commit, dispatch }, orderId) {
@@ -19,11 +18,17 @@ const actions: ActionTree<OrderState, RootState> = {
         const order = resp.data.response.draft_order;
         const productSkus = order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
         order.line_items.map((item: any) => {
-          item.isBopis = item.properties.some((property: any) => property.name === "Pickup Store");
-          item.isBopis ? item.deliveryMethodTypeId = 'STOREPICKUP' : item.deliveryMethodTypeId = 'STANDARD'
+          item.isBopis = item.properties.some((property: any) => property.name === "_pickupstore");
+          if (item.isBopis) {
+            item.deliveryMethodTypeId = 'STOREPICKUP'
+            const facilityAddress = item.properties.find((property: any) => property.name == 'Store Pickup').value.split(', ')
+            item.selectedFacility = { facilityName: facilityAddress[0], address1: facilityAddress[1], city: facilityAddress[2] }
+          } else {
+            item.deliveryMethodTypeId = 'STANDARD'
+          }
         })
-        this.dispatch('stock/checkInventoryByFacility', productSkus);
-        this.dispatch('stock/checkPreorderItemAvailability', productSkus);
+        dispatch('stock/checkInventoryByFacility', productSkus, { root: true });
+        dispatch('stock/checkPreorderItemAvailability', productSkus, { root: true });
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
         console.error(resp);
