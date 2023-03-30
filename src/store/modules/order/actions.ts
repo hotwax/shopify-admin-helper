@@ -5,7 +5,6 @@ import * as types from './mutation-types'
 import { OrderService } from '@/services/OrderService'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
-import { DateTime } from 'luxon'
 
 const actions: ActionTree<OrderState, RootState> = {
   async getDraftOrder ({ commit, dispatch }, orderId) {
@@ -18,8 +17,16 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.response?.draft_order) {
         const order = resp.data.response.draft_order;
         const productSkus = order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
-        this.dispatch('stock/checkInventoryByFacility', productSkus);
-        this.dispatch('stock/checkPreorderItemAvailability', productSkus);
+        order.line_items.map((item: any) => {
+          const isBopis = item.properties.some((property: any) => property.name === "_pickupstore");
+          if (isBopis) {
+            item.deliveryMethodTypeId = 'STOREPICKUP'
+            item.selectedFacility = item.properties.find((property: any) => property.name == 'Store Pickup').value
+          } else {
+            item.deliveryMethodTypeId = 'STANDARD'
+          }
+        })
+        dispatch('stock/checkPreorderItemAvailability', productSkus, { root: true });
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
         console.error(resp);

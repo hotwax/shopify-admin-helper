@@ -29,13 +29,17 @@
                 <p>{{ item.variant_title }}</p>
                 <p class="ion-text-wrap">{{ $t("SKU") }}: {{ item.sku }}</p>
               </ion-label>
+              <ion-button :disabled="JSON.stringify(order) == JSON.stringify(initialOrder)" fill="clear" color="medium" slot="end" @click="undo(item)">
+                <ion-icon slot="icon-only" :icon="arrowUndoOutline" />
+              </ion-button>            
             </ion-item>
             <ion-item>
-              <ion-checkbox :checked="isBopisItem(item)" slot="start" @ionChange="markBopisItem(item, $event)" />
-              <ion-label>{{ $t("Pickup") }}</ion-label>
-              <ion-note slot="end">{{ getProductStock(item.sku, shopifyStores[0]?.storeCode) }} {{ $t("in stock") }}</ion-note>
+              <ion-label>{{ $t('Delivery method') }}</ion-label>
+              <ion-select interface="popover" :value="item.deliveryMethodTypeId" @ionChange="updateDeliveryMethod($event, item)">
+                <ion-select-option v-for="method in deliveryMethods" :key="method.value" :value="method.value">{{ method.name }}</ion-select-option>
+              </ion-select>
             </ion-item>
-            <ion-radio-group :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
+            <ion-radio-group v-if="item.deliveryMethodTypeId !== 'STOREPICKUP'" :value="checkPreorderBackorderItem(item)" @ionChange="markPreorderBackorderItem(item, $event)">
               <ion-item class="border-top">
                 <ion-radio :disabled="isPreorderOrBackorderProduct(item, 'PRE-ORDER')" slot="start" value="Pre Order" />
                 <ion-label>{{ $t("Pre Order") }}</ion-label>
@@ -47,10 +51,15 @@
                 <ion-note slot="end" :color="getEstimatedDeliveryDate(item, 'BACKORDER') ? '' : 'warning'">{{ getEstimatedDeliveryDate(item, "BACKORDER") ? getEstimatedDeliveryDate(item, "BACKORDER") : $t("No shipping estimates") }}</ion-note>
               </ion-item>
             </ion-radio-group>
+            <ion-button v-else-if="item.deliveryMethodTypeId === 'STOREPICKUP' && !item.selectedFacility" @click="updatePickupLocation(item)" expand="block" fill="outline">{{ $t("Select pickup location")}}</ion-button>
+            <ion-item v-else>
+              <ion-label class="ion-text-wrap">{{ item.selectedFacility }}</ion-label>
+              <ion-button slot="end" @click="updatePickupLocation(item)" color="medium" fill="outline">{{ $t("Change Store")}}</ion-button>
+            </ion-item>
           </ion-card>
         </main>
         <div class="text-center center-align">
-          <ion-button @click="updateDraftOrder()">{{ $t("Save changes to order") }}</ion-button>
+          <ion-button :disabled="!isChanged()" @click="save()">{{ $t("Save changes to order") }}</ion-button>
         </div>
       </div>
     </ion-content>
@@ -58,9 +67,9 @@
 </template>
 <script lang="ts">
 import {
+  alertController,
   IonButton,
   IonCard,
-  IonCheckbox,
   IonContent,
   IonHeader,
   IonItem,
@@ -68,30 +77,30 @@ import {
   IonList,
   IonNote,
   IonPage,
+  IonSelect,
+  IonSelectOption,
   IonTitle,
   IonToolbar,
   IonRadio,
-  IonRadioGroup
+  IonRadioGroup,
+  modalController
 } from "@ionic/vue";
-import {
-  sendOutline,
-  swapVerticalOutline,
-  callOutline,
-  mailOutline,
-} from "ionicons/icons";
+import { arrowUndoOutline } from "ionicons/icons";
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { DateTime } from 'luxon';
 import { Redirect } from "@shopify/app-bridge/actions";
 import createApp from "@shopify/app-bridge";
+import PickupLocationModal from "./PickupLocationModal.vue";
+import { translate } from "@/i18n";
+import { showToast } from "@/utils";
 
 export default defineComponent({
-  name: 'Home',
+  name: 'OrderDetail',
   components: {
     IonButton,
     IonCard,
-    IonCheckbox,
     IonContent,
     IonHeader,
     IonItem,
@@ -99,16 +108,32 @@ export default defineComponent({
     IonList,
     IonNote,
     IonPage,
+    IonSelect,
+    IonSelectOption,
     IonTitle,
     IonToolbar,
     IonRadio,
     IonRadioGroup
   },
+  data() {
+    return {
+      initialOrder: {} as any,
+      deliveryMethods: [
+        {
+          name: 'Store pickup',
+          value: 'STOREPICKUP'
+        },
+        {
+          name: 'Shipping',
+          value: 'STANDARD'
+        }
+      ]
+    }
+  },
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
       shopifyStores: 'shop/getStores',
-      getProductStock: 'stock/getProductStock',
       getPreorderItemAvailability: 'stock/getPreorderItemAvailability',
       routeParams: 'shop/getRouteParams'
     })
@@ -118,24 +143,16 @@ export default defineComponent({
     if (this.$route.query.id) {
       await this.store.dispatch('order/getDraftOrder', this.$route.query.id);
     }
+    this.initialOrder = JSON.parse(JSON.stringify(this.order));
   },
   methods: {
-    isBopisItem(item: any){
-      return item.properties.some((property: any) => property.name === "Pickup Store");
-    },
     isPreorderOrBackorderProduct(item: any, label: string){
       const product = this.getPreorderItemAvailability(item.sku);  
       return !(product.label === label);
     },
-    markBopisItem (item: any, event: any) {
-      if(this.isBopisItem(item)){
-        // Need to remove the 'Pickup Store' check, currently kept it for backward compatibility.
-        item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
-      } else {
-        const store = this.shopifyStores[0];
-        const address = [store.storeName, store.address1, store.city].filter((value: any) => value).join(", ");
-        item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Store Pickup', value: address })
-      }
+    updateDeliveryMethod(event: any, item: any) {
+      item.deliveryMethodTypeId = event.detail.value;
+      if (item.deliveryMethodTypeId !== 'STOREPICKUP') item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
       this.store.dispatch('order/updateLineItems', this.order)
     },
     markPreorderBackorderItem (item: any, event: any) {
@@ -148,6 +165,7 @@ export default defineComponent({
     },
     async updateDraftOrder () {
       const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
+      this.order.line_items.map((lineItem: any) => delete lineItem.deliveryMethodTypeId)
       await this.store.dispatch('order/updateDraftOrder', this.order).then(() => {
         const app = createApp({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
@@ -178,6 +196,78 @@ export default defineComponent({
       if(product.label === label){
         return DateTime.fromISO(product.estimatedDeliveryDate).toFormat("MM/dd/yyyy");
       }
+    },
+    async updatePickupLocation(item: any) {
+      const modal = await modalController
+        .create({
+          component: PickupLocationModal,
+          // Adding backdropDismiss as false because on dismissing the modal through backdrop,
+          // backrop.role returns 'backdrop' giving unexpected result
+          backdropDismiss: false,
+          componentProps: { item, facilityId: item.properties.find((property: any) => property.name == '_pickupstore')?.value }
+        })
+      modal.onDidDismiss().then((result) => {
+        if (result.role) {
+          // role will have the passed data
+          const facilityData = result.role as any
+          item.selectedFacility = facilityData.selectedFacility
+          item.properties.push({ name: '_pickupstore', value: facilityData.storeCode }, { name: 'Store Pickup', value: item.selectedFacility })
+          this.store.dispatch('order/updateLineItems', this.order);
+        }
+      });
+      return modal.present();
+    },
+    async save() {
+      const message = this.$t("Are you sure you want to save the changes?");
+      const alert = await alertController.create({
+        header: this.$t("Save changes"),
+        message,
+        buttons: [
+          {
+            text: this.$t("Cancel"),
+          },
+          {
+            text: this.$t("Confirm"),
+            handler: () => {
+              this.updateDraftOrder()
+            }
+          }
+        ],
+      });
+      return alert.present();
+    },
+    isChanged() {
+      if (Object.keys(this.order).length && Object.keys(this.initialOrder).length) {
+        return this.order.line_items.some((updatedItem: any, index: number) => {
+          const isMethodUpdated = updatedItem.deliveryMethodTypeId !== this.initialOrder.line_items[index].deliveryMethodTypeId
+          return updatedItem.deliveryMethodTypeId !== 'STOREPICKUP' ? isMethodUpdated : isMethodUpdated && updatedItem.selectedFacility;
+        })
+      }
+    },
+    async undo(item: any) {
+      const header = this.$t('Clear edits')
+      const message = this.$t('Are you sure you want to undo the changes you’ve made to this order item?')
+
+      const alert = await alertController
+        .create({
+          header: header,
+          message: message,
+          buttons: [{
+            text: this.$t('Cancel'),
+            role: 'cancel'
+          },{
+            text: this.$t('Clear'),
+            handler: async () => {
+              // finding the initial line_item (without edits) and updating it in this.order
+              const initialItem = this.initialOrder.line_items.find((lineItem: any) => lineItem.id === item.id)
+              const index = this.order.line_items.findIndex((lineItem: any) => lineItem.id === item.id)
+              this.order.line_items.splice(index, 1, initialItem)
+              this.store.dispatch('order/updateLineItems', this.order)
+              showToast(translate('Previous edits cleared successfully'))
+            }
+          }]
+        });
+      return alert.present();
     }
   },
   setup() {
@@ -185,10 +275,7 @@ export default defineComponent({
     const router = useRouter();
 
     return {
-      sendOutline,
-      swapVerticalOutline,
-      callOutline,
-      mailOutline,
+      arrowUndoOutline,
       router,
       store
     };
