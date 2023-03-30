@@ -59,7 +59,7 @@
           </ion-card>
         </main>
         <div class="text-center center-align">
-          <ion-button :disabled="!areChangesMade()" @click="save()">{{ $t("Save changes to order") }}</ion-button>
+          <ion-button :disabled="!isChanged()" @click="save()">{{ $t("Save changes to order") }}</ion-button>
         </div>
       </div>
     </ion-content>
@@ -236,7 +236,7 @@ export default defineComponent({
       });
       return alert.present();
     },
-    areChangesMade() {
+    isChanged() {
       if (Object.keys(this.order).length && Object.keys(this.initialOrder).length) {
         return this.order.line_items.some((updatedItem: any, index: number) => {
           const isMethodUpdated = updatedItem.deliveryMethodTypeId !== this.initialOrder.line_items[index].deliveryMethodTypeId
