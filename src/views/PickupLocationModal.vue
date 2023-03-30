@@ -121,7 +121,7 @@ export default defineComponent({
     async getStores(location: string) {
       const payload = {
         "viewSize": 50,
-        "filters": [`storeType: ${process.env.VUE_APP_DEFAULT_STORETYPE}`],
+        "filters": process.env.VUE_APP_DEFAULT_STORETYPE,
         "keyword": this.queryString,
         "point": location,
         "distance": process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE ? process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE : 50
@@ -129,7 +129,7 @@ export default defineComponent({
 
       try {
         const storeLookupResp = await FacilityService.getStores(payload)
-        
+
         if (!storeLookupResp.data.response.numFound) return [];
         return storeLookupResp.data.response.docs
       } catch (error) {
