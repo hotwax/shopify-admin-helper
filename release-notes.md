@@ -1,3 +1,15 @@
+# Release 1.1.0
+
+## What's Changed
+* Updated Readme file and added pull request template(#2q9nxqt) by @azkyakhan in https://github.com/hotwax/shopify-admin-helper/pull/18
+* Updated UI for order details page and implemented feature to select store pickup location (#85zru5e18) by @k2maan in https://github.com/hotwax/shopify-admin-helper/pull/25
+
+## New Contributors
+* @azkyakhan made their first contribution in https://github.com/hotwax/shopify-admin-helper/pull/18
+* @k2maan made their first contribution in https://github.com/hotwax/shopify-admin-helper/pull/26
+
+**Full Changelog**: https://github.com/hotwax/shopify-admin-helper/compare/v1.0.0...v1.1.0
+
 # Release 1.0.0
 
 ## What's Changed
