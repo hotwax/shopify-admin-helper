@@ -53,17 +53,13 @@
             </ion-radio-group>
             <ion-button v-else-if="item.deliveryMethodTypeId === 'STOREPICKUP' && !item.selectedFacility" @click="updatePickupLocation(item)" expand="block" fill="outline">{{ $t("Select pickup location")}}</ion-button>
             <ion-item v-else>
-              <ion-list>
-                <ion-label>{{ item.selectedFacility.facilityName }} </ion-label>
-                <ion-label color="dark">{{ item.selectedFacility.address1 }} </ion-label>
-                <ion-label color="dark">{{ item.selectedFacility.city }}</ion-label>
-              </ion-list>
+              <ion-label class="ion-text-wrap">{{ item.selectedFacility }}</ion-label>
               <ion-button slot="end" @click="updatePickupLocation(item)" color="medium" fill="outline">{{ $t("Change Store")}}</ion-button>
             </ion-item>
           </ion-card>
         </main>
         <div class="text-center center-align">
-          <ion-button :disabled="JSON.stringify(order) == JSON.stringify(initialOrder)" @click="save()">{{ $t("Save changes to order") }}</ion-button>
+          <ion-button :disabled="!areChangesMade()" @click="save()">{{ $t("Save changes to order") }}</ion-button>
         </div>
       </div>
     </ion-content>
@@ -150,19 +146,14 @@ export default defineComponent({
     this.initialOrder = JSON.parse(JSON.stringify(this.order));
   },
   methods: {
-    updateDeliveryMethod(event: any, item: any) {
-      item.deliveryMethodTypeId = event.detail.value;
-      item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
-      if (item.isBopis) {
-        const store = this.shopifyStores[0];
-        const address = [store.storeName, store.address1, store.city].slice().join(", ");
-        item.properties.push({ name: '_pickupstore', value: store.storeCode }, { name: 'Store Pickup', value: address })
-      }
-      this.store.dispatch('order/updateLineItems', this.order)
-    },
     isPreorderOrBackorderProduct(item: any, label: string){
       const product = this.getPreorderItemAvailability(item.sku);  
       return !(product.label === label);
+    },
+    updateDeliveryMethod(event: any, item: any) {
+      item.deliveryMethodTypeId = event.detail.value;
+      if (item.deliveryMethodTypeId !== 'STOREPICKUP') item.properties = item.properties.filter((property: any) => !(property.name === '_pickupstore' || property.name === 'Store Pickup' || property.name === 'Pickup Store'))
+      this.store.dispatch('order/updateLineItems', this.order)
     },
     markPreorderBackorderItem (item: any, event: any) {
       const product = this.getPreorderItemAvailability(item.sku)
@@ -174,6 +165,7 @@ export default defineComponent({
     },
     async updateDraftOrder () {
       const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
+      this.order.line_items.map((lineItem: any) => delete lineItem.deliveryMethodTypeId)
       await this.store.dispatch('order/updateDraftOrder', this.order).then(() => {
         const app = createApp({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
@@ -212,14 +204,14 @@ export default defineComponent({
           // Adding backdropDismiss as false because on dismissing the modal through backdrop,
           // backrop.role returns 'backdrop' giving unexpected result
           backdropDismiss: false,
-          componentProps: { item }
+          componentProps: { item, facilityId: item.properties.find((property: any) => property.name == '_pickupstore')?.value }
         })
       modal.onDidDismiss().then((result) => {
         if (result.role) {
           // role will have the passed data
-          item.selectedFacility = result.role
-          const address = [item.selectedFacility.storeName, item.selectedFacility.address1, item.selectedFacility.city].slice().join(", ");
-          item.properties.push({ name: '_pickupstore', value: item.selectedFacility.storeCode }, { name: 'Store Pickup', value: address })
+          const facilityData = result.role as any
+          item.selectedFacility = facilityData.selectedFacility
+          item.properties.push({ name: '_pickupstore', value: facilityData.storeCode }, { name: 'Store Pickup', value: item.selectedFacility })
           this.store.dispatch('order/updateLineItems', this.order);
         }
       });
@@ -243,6 +235,14 @@ export default defineComponent({
         ],
       });
       return alert.present();
+    },
+    areChangesMade() {
+      if (Object.keys(this.order).length && Object.keys(this.initialOrder).length) {
+        return this.order.line_items.some((updatedItem: any, index: number) => {
+          const isMethodUpdated = updatedItem.deliveryMethodTypeId !== this.initialOrder.line_items[index].deliveryMethodTypeId
+          return updatedItem.deliveryMethodTypeId !== 'STOREPICKUP' ? isMethodUpdated : isMethodUpdated && updatedItem.selectedFacility;
+        })
+      }
     },
     async undo(item: any) {
       const header = this.$t('Clear edits')

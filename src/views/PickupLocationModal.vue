@@ -32,12 +32,13 @@
             <h2>{{ store.facilityName }}</h2>
             <p>{{ store.atp }} {{ $t("in stock") }}</p>
           </ion-label>
+          <ion-label slot="end">{{ store.distance }} {{ $t("mi") }}</ion-label>
         </ion-item>
       </ion-radio-group>
     </ion-list>
     <!-- Only show select button if there are stores to select from -->
     <div v-if="nearbyStores.length" class="ion-text-center">
-      <ion-button :disabled="Object.keys(selectedFacility).length == 0 || selectedFacility.facilityId == item.properties.find((property: any) => property.name == '_pickupstore')?.value" @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
+      <ion-button :disabled="Object.keys(selectedFacility).length == 0 || selectedFacility.facilityId == facilityId" @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
     </div>
   </ion-content>
 </template>
@@ -91,11 +92,10 @@ export default defineComponent({
       loader: null as any,
       queryString: '',
       nearbyStores: [] as any,
-      facilityId: '',
       selectedFacility: {} as any
     }
   },
-  props: ["item"],
+  props: ["item", "facilityId"],
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
@@ -122,7 +122,7 @@ export default defineComponent({
       this.queryString = event.target.value.trim();
       if(this.queryString) {
         await this.presentLoader()
-        this.getPickupStores();
+        await this.getPickupStores();
         this.dismissLoader()
       }
     },
@@ -130,7 +130,7 @@ export default defineComponent({
     async getStores(location: string) {
       const payload = {
         "viewSize": 50,
-        "filters": ["storeType: WAREHOUSE"],
+        "filters": [`storeType: ${process.env.VUE_APP_DEFAULT_STORETYPE}`],
         "keyword": this.queryString,
         "point": location,
         "distance": process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE ? process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE : 50
@@ -138,9 +138,8 @@ export default defineComponent({
 
       try {
         const storeLookupResp = await FacilityService.getStores(payload)
-        if (storeLookupResp.status !== 200 || hasError(storeLookupResp) || !storeLookupResp.data.response.numFound) {
-          return [];
-        } 
+        
+        if (!storeLookupResp.data.response.numFound) return [];
         return storeLookupResp.data.response.docs
       } catch (error) {
         console.error(error)
@@ -155,9 +154,7 @@ export default defineComponent({
           }
         })
 
-        if (locationResp.status !== 200 || hasError(locationResp) || !locationResp.data.response.numFound) {
-          return '';
-        }
+        if (!locationResp.response) return '';
         return locationResp.data.response.docs[0].location
       } catch (error) {
         console.error(error)
@@ -174,9 +171,7 @@ export default defineComponent({
           "fieldsToSelect": ["atp", "facilityName", "facilityId"],
         });
 
-        if (hasError(productInventoryResp) || !productInventoryResp.data.count) {
-          return [];
-        }
+        if (hasError(productInventoryResp) || !productInventoryResp.data.count) return [];
         return productInventoryResp.data.docs.filter((store: any) => store.atp > 0)
       } catch (error) {
         console.error(error)
@@ -196,8 +191,8 @@ export default defineComponent({
         if (!storesWithInventory?.length) return;
 
         stores.map((storeData: any) => {
-          const inventoryDetails = storesWithInventory.filter((store: any) => store.facilityId === storeData.storeCode);
-          this.nearbyStores.push({ ...storeData, ...inventoryDetails[0] });
+          const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
+          this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
         });
       } catch (error) {
         console.error(error)
@@ -205,11 +200,15 @@ export default defineComponent({
     },
 
     updateFacility() {
-      this.close(this.selectedFacility);
+      const facilityData = {
+        selectedFacility: [this.selectedFacility.storeName, this.selectedFacility.address1, this.selectedFacility.city].slice().join(', '),
+        storeCode: this.selectedFacility.storeCode
+      }
+      this.close(facilityData);
     },
 
-    close(selectedFacility?: any) {
-      modalController.dismiss({ dismissed: true }, selectedFacility);
+    close(facilityData?: any) {
+      modalController.dismiss({ dismissed: true }, facilityData);
     },
 
     async selectSearchBarText(event: any) {
