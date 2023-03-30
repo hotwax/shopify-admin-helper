@@ -118,15 +118,6 @@ export default defineComponent({
       }
     },
 
-    async search(event: any) {
-      this.queryString = event.target.value.trim();
-      if(this.queryString) {
-        await this.presentLoader()
-        await this.getPickupStores();
-        this.dismissLoader()
-      }
-    },
-
     async getStores(location: string) {
       const payload = {
         "viewSize": 50,
@@ -178,8 +169,11 @@ export default defineComponent({
       }
     },
 
-    async getPickupStores() {
+    async search(event: any) {
+      this.queryString = event.target.value.trim();
+      if(!this.queryString) return 
       this.nearbyStores = [];
+      await this.presentLoader()
       try {
         const location = await this.getZipCodeGeoLocation()
         if (!location) return;
@@ -196,6 +190,8 @@ export default defineComponent({
         });
       } catch (error) {
         console.error(error)
+      } finally {
+        this.dismissLoader()
       }
     },
 
