@@ -130,7 +130,7 @@ export default defineComponent({
       try {
         const storeLookupResp = await FacilityService.getStores(payload)
 
-        if (!storeLookupResp.data.response.numFound) return [];
+        if (!storeLookupResp.data.response?.numFound) return [];
         return storeLookupResp.data.response.docs
       } catch (error) {
         console.error(error)
@@ -145,7 +145,7 @@ export default defineComponent({
           }
         })
 
-        if (!locationResp.response) return '';
+        if (!locationResp.data.response?.numFound) return '';
         return locationResp.data.response.docs[0].location
       } catch (error) {
         console.error(error)
