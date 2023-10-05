@@ -9,20 +9,20 @@
       <ion-title>{{ $t("Select pickup location") }}</ion-title>
     </ion-toolbar>
     <ion-toolbar>
-      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search zip code')"  v-model="queryString" @keyup.enter="search($event)" />
+      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="searchPriority == 'zipCode' ? $t('Search zip code') : $t('Search')"  v-model="queryString" @keyup.enter="search($event)" />
     </ion-toolbar>
   </ion-header>
   <ion-content>
     <div v-if="!queryString.length" class="ion-text-center">
-      <p>{{ $t("Enter zip code to search stores nearby") }}</p>
+      <p>{{ searchPriority == 'zipCode' ? $t("Enter zip code to search stores nearby") : $t('Enter keyword to search stores') }}</p>
     </div>    
 
     <div v-else-if="!nearbyStores.length" class="ion-text-center">
-      <p>{{ $t("No stores found. Please search another zip code.") }}</p>
+      <p>{{ searchPriority == 'zipCode' ? $t("No stores found. Please search another zip code.") : $t("No stores found. Please search another store.") }}</p>
     </div>
 
     <ion-list v-else >
-      <ion-list-header lines="full" color="light">
+      <ion-list-header v-if="searchPriority == 'zipCode'" lines="full" color="light">
         <ion-label>{{ $t("Nearby stores") }}</ion-label>
       </ion-list-header>
       <ion-radio-group v-model="selectedFacility">
@@ -32,7 +32,7 @@
             <h2>{{ store.facilityName }}</h2>
             <p>{{ store.atp }} {{ $t("in stock") }}</p>
           </ion-label>
-          <ion-label slot="end">{{ store.distance }} {{ $t("mi") }}</ion-label>
+          <ion-label v-if="store.distance" slot="end">{{ store.distance }} {{ $t("mi") }}</ion-label>
         </ion-item>
       </ion-radio-group>
     </ion-list>
@@ -56,6 +56,7 @@ import {
   IonListHeader,
   IonRadio,
   IonRadioGroup,
+  IonSearchbar,
   IonTitle,
   IonToolbar,
   loadingController,
@@ -84,6 +85,7 @@ export default defineComponent({
     IonLabel,
     IonRadio,
     IonRadioGroup,
+    IonSearchbar,
     IonTitle,
     IonToolbar
   },
@@ -92,14 +94,26 @@ export default defineComponent({
       loader: null as any,
       queryString: '',
       nearbyStores: [] as any,
-      selectedFacility: {} as any
+      selectedFacility: {} as any,
+      searchPriority: 'zipCode',
+      filters: process.env.VUE_APP_DEFAULT_STORETYPE
     }
   },
   props: ["item", "facilityId"],
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
+      shop: 'shop/getShop'
     })
+  },
+  mounted() {
+    const shopifyShops = JSON.parse(process.env.VUE_APP_DEFAULT_SHOP_CONFIG)
+    const shopConfiguration = shopifyShops[this.shop]
+
+    if(shopConfiguration) {
+      this.searchPriority = shopConfiguration.search
+      this.filters = shopConfiguration.filters
+    }
   },
   methods: {
     async presentLoader() {
@@ -121,11 +135,14 @@ export default defineComponent({
     async getStores(location: string) {
       const payload = {
         "viewSize": 50,
-        "filters": process.env.VUE_APP_DEFAULT_STORETYPE,
-        "keyword": this.queryString,
-        "point": location,
-        "distance": process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE ? process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE : 50
+        "filters": this.filters,
+        "keyword": this.queryString
       } as any
+
+      if(this.searchPriority == 'zipCode') {
+        payload['point'] = location
+        payload['distance'] = process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE ? process.env.VUE_APP_DEFAULT_STORELOOKUP_DISTANCE : 50
+      }
 
       try {
         const storeLookupResp = await FacilityService.getStores(payload)
@@ -175,8 +192,14 @@ export default defineComponent({
       this.nearbyStores = [];
       await this.presentLoader()
       try {
-        const location = await this.getZipCodeGeoLocation()
-        if (!location) return;
+        let location = ''
+
+        // if the shop supports zipCode search then only fetch the geoLocation
+        if(this.searchPriority == 'zipCode') {
+          location = await this.getZipCodeGeoLocation()
+          if (!location) return;
+        }
+
         const stores = await this.getStores(location)
         if (!stores?.length) return;
 
@@ -186,7 +209,10 @@ export default defineComponent({
 
         stores.map((storeData: any) => {
           const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
-          this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
+          // only add stores information in array when having inventory for that store
+          if(inventoryDetails) {
+            this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
+          }
         });
       } catch (error) {
         console.error(error)
