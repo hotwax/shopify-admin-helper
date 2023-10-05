@@ -9,7 +9,7 @@
       <ion-title>{{ $t("Select pickup location") }}</ion-title>
     </ion-toolbar>
     <ion-toolbar>
-      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="searchPriority == 'zipCode' ? $t('Search zip code') : $t('Search ')"  v-model="queryString" @keyup.enter="search($event)" />
+      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="searchPriority == 'zipCode' ? $t('Search zip code') : $t('Search')"  v-model="queryString" @keyup.enter="search($event)" />
     </ion-toolbar>
   </ion-header>
   <ion-content>
