@@ -2,6 +2,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
+        <ion-back-button default-href="/" slot="start" @click="back($event)" />
         <ion-title>{{ $t("Order Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -11,10 +12,13 @@
         <ion-card>
           <ion-list>
             <ion-item lines="none">
-              <ion-label>
-                <h2>{{ order.customer?.first_name }} {{ order.customer?.last_name }}</h2>
+              <ion-label v-if="order.customer">
+                <h2>{{ order.customer.first_name }} {{ order.customer.last_name }}</h2>
                 <!-- TODO: Uncomment this when we'll get CRS information -->
                 <!-- <p>CSR name</p> -->
+              </ion-label>
+              <ion-label v-else>
+                <h2>{{ $t("No customer") }}</h2>
               </ion-label>
               <ion-note slot="end">{{ timeFromNow(order?.created_at) }}</ion-note>
             </ion-item>
@@ -68,6 +72,7 @@
 <script lang="ts">
 import {
   alertController,
+  IonBackButton,
   IonButton,
   IonCard,
   IonContent,
@@ -100,6 +105,7 @@ import { showToast } from "@/utils";
 export default defineComponent({
   name: 'OrderDetail',
   components: {
+    IonBackButton,
     IonButton,
     IonCard,
     IonContent,
@@ -148,6 +154,10 @@ export default defineComponent({
     this.initialOrder = JSON.parse(JSON.stringify(this.order));
   },
   methods: {
+    back(event: any) {
+      event?.preventDefault();
+      history.back()
+    },
     isPreorderOrBackorderProduct(item: any, label: string){
       const product = this.getPreorderItemAvailability(item.sku);  
       return !(product.label === label);
