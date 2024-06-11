@@ -13,24 +13,26 @@
     </ion-toolbar>
   </ion-header>
   <ion-content>
-    <div v-if="!queryString.length" class="ion-text-center">
-      <p>{{ searchPriority == 'zipCode' ? $t("Enter zip code to search stores nearby") : $t('Enter keyword to search stores') }}</p>
-    </div>    
+    <div v-if="isloading" class="empty-state">
+      <ion-spinner name="crescent" />
+      <p>{{ $t("Fetching stores") }}</p>
+    </div>
 
     <div v-else-if="!nearbyStores.length" class="ion-text-center">
       <p>{{ searchPriority == 'zipCode' ? $t("No stores found. Please search another zip code.") : $t("No stores found. Please search another store.") }}</p>
     </div>
 
-    <ion-list v-else >
+    <ion-list v-else>
       <ion-list-header v-if="searchPriority == 'zipCode'" lines="full" color="light">
         <ion-label>{{ $t("Nearby stores") }}</ion-label>
       </ion-list-header>
       <ion-radio-group v-model="selectedFacility">
         <ion-item v-for="store of nearbyStores" :key="store.facilityId">
-          <ion-radio :value="store" slot="start" />
+          <ion-radio :disabled="!store.atp" :value="store" slot="start" />
           <ion-label>
-            <h2>{{ store.facilityName }}</h2>
-            <p>{{ store.atp }} {{ $t("in stock") }}</p>
+            <h2>{{ store.facilityName || store.storeName }}</h2>
+            <p v-if="store.atp">{{ store.atp }} {{ $t("in stock") }}</p>
+            <p v-else>{{ $t("No inventory") }}</p>
           </ion-label>
           <ion-label v-if="store.distance" slot="end">{{ store.distance }} {{ $t("mi") }}</ion-label>
         </ion-item>
@@ -57,6 +59,7 @@ import {
   IonRadio,
   IonRadioGroup,
   IonSearchbar,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   loadingController,
@@ -86,6 +89,7 @@ export default defineComponent({
     IonRadio,
     IonRadioGroup,
     IonSearchbar,
+    IonSpinner,
     IonTitle,
     IonToolbar
   },
@@ -96,7 +100,8 @@ export default defineComponent({
       nearbyStores: [] as any,
       selectedFacility: {} as any,
       searchPriority: 'zipCode',
-      filters: process.env.VUE_APP_DEFAULT_STORETYPE
+      filters: process.env.VUE_APP_DEFAULT_STORETYPE,
+      isloading: false
     }
   },
   props: ["item", "facilityId"],
@@ -106,7 +111,8 @@ export default defineComponent({
       shop: 'shop/getShop'
     })
   },
-  mounted() {
+  async mounted() {
+    this.isloading = true
     const shopifyShops = JSON.parse(process.env.VUE_APP_DEFAULT_SHOP_CONFIG)
     const shopConfiguration = shopifyShops[this.shop]
 
@@ -114,12 +120,34 @@ export default defineComponent({
       this.searchPriority = shopConfiguration.search
       this.filters = shopConfiguration.filters
     }
+
+    try {
+      const stores = await this.getStores("")
+      if (!stores?.length) return;
+
+      const facilityIds = stores.map((store: any) => store.storeCode)
+      const storesWithInventory = await this.checkInventory(facilityIds)
+
+      stores.map((storeData: any) => {
+        const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
+        // only add stores information in array when having inventory for that store
+        if(inventoryDetails) {
+          this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
+        } else {
+          this.nearbyStores.push({ ...storeData, atp: 0 });
+        }
+      });
+    } catch(err) {
+      console.error(err)
+    } finally {
+      this.isloading = false
+    }
   },
   methods: {
     async presentLoader() {
       this.loader = await loadingController
         .create({
-          message: this.$t("Fetching stores."),
+          message: this.$t("Fetching stores"),
           translucent: true,
         });
       await this.loader.present();
@@ -134,7 +162,7 @@ export default defineComponent({
 
     async getStores(location: string) {
       const payload = {
-        "viewSize": 50,
+        "viewSize": 10,
         "filters": this.filters,
         "keyword": this.queryString
       } as any
@@ -180,7 +208,7 @@ export default defineComponent({
         });
 
         if (hasError(productInventoryResp) || !productInventoryResp.data.count) return [];
-        return productInventoryResp.data.docs.filter((store: any) => store.atp > 0)
+        return productInventoryResp.data.docs;
       } catch (error) {
         console.error(error)
       }
@@ -190,7 +218,7 @@ export default defineComponent({
       this.queryString = event.target.value.trim();
       if(!this.queryString) return 
       this.nearbyStores = [];
-      await this.presentLoader()
+      this.isloading = true;
       try {
         let location = ''
 
@@ -205,19 +233,20 @@ export default defineComponent({
 
         const facilityIds = stores.map((store: any) => store.storeCode)
         const storesWithInventory = await this.checkInventory(facilityIds)
-        if (!storesWithInventory?.length) return;
 
         stores.map((storeData: any) => {
           const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
           // only add stores information in array when having inventory for that store
           if(inventoryDetails) {
             this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
-          }
+          } else {
+          this.nearbyStores.push({ ...storeData, atp: 0 });
+        }
         });
       } catch (error) {
         console.error(error)
       } finally {
-        this.dismissLoader()
+        this.isloading = false
       }
     },
 
