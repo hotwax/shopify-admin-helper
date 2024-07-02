@@ -223,7 +223,17 @@ export default defineComponent({
           // role will have the passed data
           const facilityData = result.role as any
           item.selectedFacility = facilityData.selectedFacility
-          item.properties.push({ name: '_pickupstore', value: facilityData.storeCode }, { name: 'Store Pickup', value: item.selectedFacility })
+
+          // Filtering item properties that are not related to pickup as we want to remove the previously associated properties and add the new one
+          // Using this approach, as if we will filter and update the pickup properties we will need multiple looping on the properties
+          const itemProperties = item.properties.filter((property: any) => property.name != "_pickupstore" && property.name != "Store Pickup")
+
+          // Adding the selected facility information as pickup facility
+          itemProperties.push({ name: '_pickupstore', value: facilityData.storeCode }, { name: 'Store Pickup', value: item.selectedFacility })
+
+          // Reassigning the item properties with updated properties array
+          item.properties = itemProperties
+
           this.store.dispatch('order/updateLineItems', this.order);
         }
       });
