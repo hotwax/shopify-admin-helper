@@ -12,7 +12,8 @@ const shopModule: Module<ShopState, RootState> = {
     shop: '',
     configId: '',
     stores: {},
-    routeParams: {}
+    routeParams: {},
+    shopifyShopId: ''
   },
   getters,
   actions,

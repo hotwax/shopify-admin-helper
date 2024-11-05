@@ -20,6 +20,9 @@ const mutations: MutationTree <ShopState> = {
   },
   [types.SHOP_ROUTE_PARAMS_UPDATED] (state, payload) {
     state.routeParams = payload;
+  },
+  [types.SHOP_SHOPIFY_ID_UPDATED] (state, payload) {
+    state.shopifyShopId = payload;
   }
 }
 export default mutations;

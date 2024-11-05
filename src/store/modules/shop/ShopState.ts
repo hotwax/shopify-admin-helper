@@ -4,4 +4,5 @@ export default interface ShopState {
   configId: string;
   stores: any;
   routeParams: any;
+  shopifyShopId: string;
 }

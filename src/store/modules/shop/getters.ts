@@ -17,6 +17,9 @@ const getters: GetterTree <ShopState, RootState> = {
   },
   getRouteParams (state) {
     return state.routeParams;
+  },
+  getShopifyShopId(state) {
+    return state.shopifyShopId;
   }
 }
 export default getters;

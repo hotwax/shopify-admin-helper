@@ -8,6 +8,15 @@ const getGeoLocation = async (payload: any): Promise <any>  => {
   });
 }
 
+const getShopifyShop = async (payload: any): Promise <any>  => {
+  return api({
+    url: "performFind",
+    method: "post",
+    data: payload,
+  });
+}
+
 export const UtilityService = {
-  getGeoLocation
+  getGeoLocation,
+  getShopifyShop
 }
