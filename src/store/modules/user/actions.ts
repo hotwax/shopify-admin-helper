@@ -76,6 +76,7 @@ const actions: ActionTree<UserState, RootState> = {
     // TODO add any other tasks if need
     store.commit('shop/shop/CONFIG_ID_UPDATED', "");
     store.commit('shop/shop/STORES_UPDATED', {});
+    store.commit('shop/shop/SHOPIFY_ID_UPDATED', "");
     commit(types.USER_END_SESSION)
   },
   

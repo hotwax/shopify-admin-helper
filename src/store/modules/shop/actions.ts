@@ -4,6 +4,7 @@ import ShopState from './ShopState'
 import * as types from './mutation-types'
 import { getShopifyConfigId, getStores } from '@/services'
 import { hasError } from '@/utils'
+import { UtilityService } from '@/services/UtilityService'
 
 const actions: ActionTree<ShopState, RootState> = {
   setShopToken({ commit }, payload) {
@@ -46,6 +47,37 @@ const actions: ActionTree<ShopState, RootState> = {
   },
   setRouteParams({commit}, payload){
     commit(types.SHOP_ROUTE_PARAMS_UPDATED, payload)
+  },
+  async getShopifyShopId({ commit, state }, shop) {
+    let shopId = "";
+
+    // If we do not get value for shop in the argument or if we already have shopifyShopId in state
+    // then do not do anything and just break the flow
+    if(!shop || state.shopifyShopId) {
+      return;
+    }
+
+    const payload = {
+      "inputFields": {
+        "myshopifyDomain": shop
+      },
+      "entityName": "ShopifyShop",
+      "noConditionFind": "Y",
+      "fieldList": ["shopifyShopId", "myshopifyDomain"],
+      "viewSize": 1
+    }
+
+    try {
+      const resp = await UtilityService.getShopifyShop(payload)
+
+      if(!hasError(resp) && resp.data?.docs.length > 0) {
+        shopId = resp.data.docs[0].shopifyShopId
+      }
+    } catch(err) {
+      console.error("Shopify shop id not found")
+    }
+
+    commit(types.SHOP_SHOPIFY_ID_UPDATED, shopId)
   }
 }
 export default actions;

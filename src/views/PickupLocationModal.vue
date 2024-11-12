@@ -108,7 +108,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
-      shop: 'shop/getShop'
+      shop: 'shop/getShop',
+      shopifyShopId: 'shop/getShopifyShopId'
     })
   },
   async mounted() {
@@ -118,7 +119,16 @@ export default defineComponent({
 
     if(shopConfiguration) {
       this.searchPriority = shopConfiguration.search
-      this.filters = shopConfiguration.filters
+
+      const filterByBrand = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG)[this.shop]?.filterByBrand
+
+      if(filterByBrand && filterByBrand === "true") {
+        await this.store.dispatch('shop/getShopifyShopId', this.shop);
+        // Accessing 0th index of filter by considering that the filters array will have a single value in the env file
+        this.filters = this.shopifyShopId ? [shopConfiguration.filters[0].concat(` AND primaryFacilityGroupId: ${this.shopifyShopId}`)] : shopConfiguration.filters
+      } else {
+        this.filters = shopConfiguration.filters
+      }
     }
 
     try {
