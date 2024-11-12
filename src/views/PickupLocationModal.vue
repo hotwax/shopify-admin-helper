@@ -149,7 +149,6 @@ export default defineComponent({
           this.nearbyStores.push({ ...storeData, isInventoryAvailableForAllProducts: false });
         }
       });
-      console.log('this.nearbyStores', this.nearbyStores)
     } catch(err) {
       console.error(err)
     } finally {
@@ -237,8 +236,6 @@ export default defineComponent({
 
           return inventoryByFacilities;
         }, {})
-
-        console.log('inventoryByFacilities', inventoryByFacilities);
 
         return inventoryByFacilities;
       } catch (error) {
