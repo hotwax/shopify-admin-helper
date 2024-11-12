@@ -27,7 +27,7 @@
         <ion-label>{{ $t("Nearby stores") }}</ion-label>
       </ion-list-header>
       <ion-radio-group v-model="selectedFacility">
-        <ion-item v-for="store of nearbyStores" :key="store.facilityId">
+        <ion-item v-for="store of nearbyStores" :key="store.storeCode">
           <ion-radio :disabled="!store.isInventoryAvailableForAllProducts" :value="store" slot="start" />
           <ion-label>
             <h2>{{ store.facilityName || store.storeName }}</h2>
@@ -39,7 +39,7 @@
     </ion-list>
     <!-- Only show select button if there are stores to select from -->
     <div v-if="nearbyStores.length" class="ion-text-center">
-      <ion-button :disabled="Object.keys(selectedFacility).length == 0 || selectedFacility.facilityId == facilityId" @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
+      <ion-button :disabled="Object.keys(selectedFacility).length == 0 || selectedFacility.storeCode == facilityId" @click="updateFacility()">{{ $t("Select pickup location") }}</ion-button>
     </div>
   </ion-content>
 </template>
