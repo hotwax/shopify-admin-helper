@@ -28,11 +28,10 @@
       </ion-list-header>
       <ion-radio-group v-model="selectedFacility">
         <ion-item v-for="store of nearbyStores" :key="store.facilityId">
-          <ion-radio :disabled="!store.atp" :value="store" slot="start" />
+          <ion-radio :disabled="!store.isInventoryAvailableForAllProducts" :value="store" slot="start" />
           <ion-label>
             <h2>{{ store.facilityName || store.storeName }}</h2>
-            <p v-if="store.atp">{{ store.atp }} {{ $t("in stock") }}</p>
-            <p v-else>{{ $t("No inventory") }}</p>
+            <p v-if="!store.isInventoryAvailableForAllProducts">{{ $t("No inventory") }}</p>
           </ion-label>
           <ion-label v-if="store.distance" slot="end">{{ store.distance }} {{ $t("mi") }}</ion-label>
         </ion-item>
@@ -104,7 +103,7 @@ export default defineComponent({
       isloading: false
     }
   },
-  props: ["item", "facilityId"],
+  props: ["facilityId"],
   computed: {
     ...mapGetters({
       order: 'order/getDraftOrder',
@@ -139,14 +138,18 @@ export default defineComponent({
       const storesWithInventory = await this.checkInventory(facilityIds)
 
       stores.map((storeData: any) => {
-        const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
+        const inventoryDetails = Object.keys(storesWithInventory).find((storeCode: any) => {
+          const isInventoryAvailableForAllProducts = this.order.line_items.every((item: any) => storesWithInventory[storeCode][item.sku] >= item.quantity)
+          return storeCode === storeData.storeCode && isInventoryAvailableForAllProducts
+        });
         // only add stores information in array when having inventory for that store
         if(inventoryDetails) {
-          this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
+          this.nearbyStores.push({ ...storeData, isInventoryAvailableForAllProducts: true, distance: storeData.dist });
         } else {
-          this.nearbyStores.push({ ...storeData, atp: 0 });
+          this.nearbyStores.push({ ...storeData, isInventoryAvailableForAllProducts: false });
         }
       });
+      console.log('this.nearbyStores', this.nearbyStores)
     } catch(err) {
       console.error(err)
     } finally {
@@ -196,7 +199,7 @@ export default defineComponent({
       try {
         const locationResp = await UtilityService.getGeoLocation({
           "json": {
-            "query": `postcode:${this.queryString}`
+            "query": `postcode: ${this.queryString.startsWith('0') ? `${this.queryString} OR ${this.queryString.substring(1)}` : this.queryString}`
           }
         })
 
@@ -208,17 +211,36 @@ export default defineComponent({
     },
     
     async checkInventory(facilityIds: Array<string>) {
+      const productSkus = this.order.line_items.map((item: any) => item.sku);
       try {
         const productInventoryResp = await StockService.checkInventoryByFacility({
           "filters": {
-            "sku": this.item.sku,
-            "facilityId": facilityIds
+            "sku": productSkus,
+            "sku_op": "in",
+            "facilityId": facilityIds,
+            "facilityId_op": "in"
           },
-          "fieldsToSelect": ["atp", "facilityName", "facilityId"],
+          "fieldsToSelect": ["atp", "facilityName", "facilityId", "sku"],
+          "viewSize": productSkus.length * facilityIds.length
         });
 
         if (hasError(productInventoryResp) || !productInventoryResp.data.count) return [];
-        return productInventoryResp.data.docs;
+
+        const inventoryByFacilities = productInventoryResp.data.docs.reduce((inventoryByFacilities: any, facility: any) => {
+          if (inventoryByFacilities[facility.facilityId]) {
+            facility.atp > 0 && (inventoryByFacilities[facility.facilityId][facility.sku] = facility.atp)
+          } else {
+            inventoryByFacilities[facility.facilityId] = {
+              [facility.sku]: facility.atp
+            }
+          }
+
+          return inventoryByFacilities;
+        }, {})
+
+        console.log('inventoryByFacilities', inventoryByFacilities);
+
+        return inventoryByFacilities;
       } catch (error) {
         console.error(error)
       }
@@ -245,13 +267,16 @@ export default defineComponent({
         const storesWithInventory = await this.checkInventory(facilityIds)
 
         stores.map((storeData: any) => {
-          const inventoryDetails = storesWithInventory.find((store: any) => store.facilityId === storeData.storeCode);
+          const inventoryDetails = Object.keys(storesWithInventory).find((storeCode: any) => {
+            const isInventoryAvailableForAllProducts = this.order.line_items.every((item: any) => storesWithInventory[storeCode][item.sku] >= item.quantity)
+            return storeCode === storeData.storeCode && isInventoryAvailableForAllProducts
+          });
           // only add stores information in array when having inventory for that store
           if(inventoryDetails) {
-            this.nearbyStores.push({ ...storeData, ...inventoryDetails, distance: storeData.dist });
+            this.nearbyStores.push({ ...storeData, isInventoryAvailableForAllProducts: true, distance: storeData.dist });
           } else {
-          this.nearbyStores.push({ ...storeData, atp: 0 });
-        }
+            this.nearbyStores.push({ ...storeData, isInventoryAvailableForAllProducts: false });
+          }
         });
       } catch (error) {
         console.error(error)
