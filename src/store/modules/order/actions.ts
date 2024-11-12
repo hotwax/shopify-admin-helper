@@ -22,6 +22,9 @@ const actions: ActionTree<OrderState, RootState> = {
         if(isBopisOrder) {
           order.selectedFacility = order.line_items[0].properties.find((property: any) => property.name == 'Store Pickup').value
           order.selectedFacilityId = order.line_items[0].properties.find((property: any) => property.name == '_pickupstore').value
+        } else {
+          order.selectedFacility = ""
+          order.selectedFacilityId = ""
         }
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {

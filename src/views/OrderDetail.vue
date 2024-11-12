@@ -130,6 +130,21 @@ export default defineComponent({
     },
     async updateDraftOrder () {
       const shopConfig = JSON.parse(process.env.VUE_APP_SHOPIFY_SHOP_CONFIG);
+
+      // If we are removing already associated facility from the order(making order as standard) then remove the bopis property from items
+      if(!this.selectedFacilityId) {
+        this.order.line_items.map((lineItem: any) => {
+          // Filtering item properties that are not related to pickup as we want to remove the previously associated properties
+          // Using this approach, as if we will filter and update the pickup properties we will need multiple looping on the properties
+          const itemProperties = lineItem.properties.filter((property: any) => property.name != "_pickupstore" && property.name != "Store Pickup")
+
+          // Reassigning the item properties with updated properties array
+          lineItem.properties = itemProperties
+        })
+
+        this.store.dispatch('order/updateLineItems', this.order);
+      }
+
       await this.store.dispatch('order/updateDraftOrder', this.order).then(() => {
         const app = createApp({
           apiKey: shopConfig[this.routeParams.shop].apiKey,
@@ -197,10 +212,17 @@ export default defineComponent({
       return alert.present();
     },
     isChanged() {
+      /* Save changes button will be enabled in following cases:
+        - If the order was not bopis order previously and the user has selected a facility, this will make the order bopis
+        - If the order was bopis order previously and the user has remove the selected facility, this will make the order standard
+        - If the order was bopis order previously and the user has changed the selected facility
+      */
       if (Object.keys(this.order).length && Object.keys(this.initialOrder).length) {
-        return this.selectedFacility;
+        if (this.selectedFacilityId === this.order.selectedFacilityId) {
+          return false
+        }
       }
-      return false;
+      return true;
     },
     removeFacility() {
       this.selectedFacility = ""
