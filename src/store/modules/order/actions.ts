@@ -7,7 +7,7 @@ import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
 
 const actions: ActionTree<OrderState, RootState> = {
-  async getDraftOrder ({ commit, dispatch }, orderId) {
+  async getDraftOrder ({ commit }, orderId) {
     const payload = {
       draftOrderId: orderId,
       shopifyConfigId: this.state.shop.configId
@@ -16,25 +16,19 @@ const actions: ActionTree<OrderState, RootState> = {
       const resp = await OrderService.getDraftOrder(payload);
       if (resp.status === 200 && !hasError(resp) && resp.data.response?.draft_order) {
         const order = resp.data.response.draft_order;
-        const productSkus = order.line_items.map((item: any) => item.sku).filter((sku: any) => sku);
-        order.line_items.map((item: any) => {
-          const isBopis = item.properties.some((property: any) => property.name === "_pickupstore");
-          if (isBopis) {
-            item.deliveryMethodTypeId = 'STOREPICKUP'
-            item.selectedFacility = item.properties.find((property: any) => property.name == 'Store Pickup').value
-          } else {
-            item.deliveryMethodTypeId = 'STANDARD'
-          }
-        })
-        dispatch('stock/checkPreorderItemAvailability', productSkus, { root: true });
+
+        // If all the items are bopis items, then only consider the order as bopis
+        const isBopisOrder = order.line_items.every((item: any) => item.properties.some((property: any) => property.name === "_pickupstore"))
+        if(isBopisOrder) {
+          order.selectedFacility = order.line_items[0].properties.find((property: any) => property.name == 'Store Pickup').value
+          order.selectedFacilityId = order.line_items[0].properties.find((property: any) => property.name == '_pickupstore').value
+        }
         commit(types.DRAFT_ORDER_UPDATED, order);
       } else {
         console.error(resp);
-        showToast(translate("Something went wrong"));
       }
     } catch (err) {
       console.error(err);
-      showToast(translate("Something went wrong"));
     }
   },
 
