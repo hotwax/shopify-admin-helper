@@ -23,12 +23,12 @@ export default defineComponent({
     }
   },
   methods: {
-    async presentLoader() {
+    async presentLoader(options = { message: '', backdropDismiss: false }) {
       this.loader = await loadingController
-        .create({
-          message: this.$t("Click the backdrop to dismiss."),
+        .create({ 
+          message: options.message ? this.$t(options.message) : (options.backdropDismiss ? this.$t("Click the backdrop to dismiss.") : this.$t("Loading...")),
           translucent: true,
-          backdropDismiss: true
+          backdropDismiss: false
         });
       await this.loader.present();
     },
